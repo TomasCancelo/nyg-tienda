@@ -39,7 +39,7 @@ export default function Navbar() {
         <Link href="/#inicio" className="flex items-center gap-4">
           <div className="h-[100px] w-[100px] overflow-hidden rounded-2xl border border-white/10 bg-white/5">
             <img
-              src="/logo.png"
+              src="https://thqmpndhlqknwactxcik.supabase.co/storage/v1/object/public/productos/logo.PNG"
               alt="NYG"
               className="h-full w-full object-cover"
             />
