@@ -36,7 +36,7 @@ export default function Navbar() {
     <header className="sticky top-0 z-20 w-full border-b border-white/10 bg-[#0a0a0a]">
       <nav className="w-full">
         <div className="flex w-full items-center justify-between gap-4 px-6 py-10">
-        <Link href="/#inicio" className="flex items-center gap-4">
+        <Link href="/" className="flex items-center gap-4">
           <div className="h-[100px] w-[100px] overflow-hidden rounded-2xl border border-white/10 bg-white/5">
             <img
               src="https://thqmpndhlqknwactxcik.supabase.co/storage/v1/object/public/productos/logo.PNG"
@@ -51,20 +51,13 @@ export default function Navbar() {
         </Link>
 
         <div className="hidden items-center gap-10 text-lg font-semibold text-zinc-100 md:flex">
-          <Link
-            href="/#inicio"
-            className="rounded-lg px-2 py-1 transition hover:bg-white/5 hover:text-[#F97316]"
-          >
-            Inicio
-          </Link>
-
           <div
             className="relative"
             onMouseEnter={() => setIsProductosOpen(true)}
             onMouseLeave={() => setIsProductosOpen(false)}
           >
             <Link
-              href="/#productos"
+              href="/productos"
               className="rounded-lg px-2 py-1 transition hover:bg-white/5 hover:text-[#F97316]"
             >
               Productos
@@ -105,7 +98,7 @@ export default function Navbar() {
         </div>
 
         <Link
-          href="/#productos"
+          href="/productos"
           className="rounded-full bg-[#F97316] px-8 py-4 text-lg font-semibold text-black shadow-lg shadow-orange-500/30 ring-1 ring-orange-300/20 transition hover:bg-orange-400 hover:shadow-orange-500/40"
         >
           Ver productos
