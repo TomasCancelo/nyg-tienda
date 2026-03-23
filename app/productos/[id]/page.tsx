@@ -29,6 +29,14 @@ type ProductoRelacionado = {
   marcas: { nombre: string } | null;
 };
 
+type ProductoRelacionadoRaw = {
+  id: number;
+  nombre: string;
+  precio: number;
+  imagen_url: string | null;
+  marcas: { nombre: string }[] | null;
+};
+
 function formatUYU(price: number) {
   return new Intl.NumberFormat("es-UY", {
     style: "currency",
@@ -104,6 +112,13 @@ export default async function ProductoPage({
   if (relacionadosError) {
     throw new Error(relacionadosError.message);
   }
+
+  const relacionadosNormalizados: ProductoRelacionado[] = (
+    (relacionados ?? []) as ProductoRelacionadoRaw[]
+  ).map((p) => ({
+    ...p,
+    marcas: Array.isArray(p.marcas) ? (p.marcas[0] ?? null) : null,
+  }));
 
   const whatsappMessage = `Hola, quiero consultar por: ${producto.nombre}`;
   const whatsappUrl = `https://wa.me/59899000000?text=${encodeURIComponent(
@@ -195,7 +210,7 @@ export default async function ProductoPage({
             Productos relacionados
           </h2>
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            {((relacionados ?? []) as ProductoRelacionado[]).map((p) => (
+            {relacionadosNormalizados.map((p) => (
               <article
                 key={p.id}
                 className="group overflow-hidden rounded-2xl border border-gray-800 bg-[#111111] transition hover:border-amber-500/50"
