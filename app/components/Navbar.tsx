@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
+import Buscador from "./Buscador";
 
 type Categoria = {
   id: number;
@@ -12,6 +13,7 @@ type Categoria = {
 export default function Navbar() {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [isProductosOpen, setIsProductosOpen] = useState(false);
+  const [isBuscadorOpen, setIsBuscadorOpen] = useState(false);
 
   useEffect(() => {
     const fetchCategorias = async () => {
@@ -50,7 +52,13 @@ export default function Navbar() {
           </div>
         </Link>
 
-        <div className="hidden items-center gap-10 text-lg font-semibold text-zinc-100 md:flex">
+        <div
+          className={`hidden items-center gap-10 text-lg font-semibold text-zinc-100 transition-all duration-300 md:flex ${
+            isBuscadorOpen
+              ? "pointer-events-none w-0 overflow-hidden opacity-0"
+              : "opacity-100"
+          }`}
+        >
           <div
             className="relative"
             onMouseEnter={() => setIsProductosOpen(true)}
@@ -97,12 +105,23 @@ export default function Navbar() {
           </Link>
         </div>
 
-        <Link
-          href="/productos"
-          className="rounded-full bg-[#F97316] px-8 py-4 text-lg font-semibold text-black shadow-lg shadow-orange-500/30 ring-1 ring-orange-300/20 transition hover:bg-orange-400 hover:shadow-orange-500/40"
-        >
-          Ver productos
-        </Link>
+        <div className={`flex items-center gap-3 ${isBuscadorOpen ? "flex-1" : ""}`}>
+          <Buscador
+            isOpen={isBuscadorOpen}
+            onOpen={() => setIsBuscadorOpen(true)}
+            onClose={() => setIsBuscadorOpen(false)}
+          />
+          <Link
+            href="/productos"
+            className={`rounded-full bg-[#F97316] px-8 py-4 text-lg font-semibold text-black shadow-lg shadow-orange-500/30 ring-1 ring-orange-300/20 transition hover:bg-orange-400 hover:shadow-orange-500/40 ${
+              isBuscadorOpen
+                ? "pointer-events-none w-0 overflow-hidden px-0 py-0 opacity-0"
+                : "opacity-100"
+            }`}
+          >
+            Ver productos
+          </Link>
+        </div>
         </div>
       </nav>
     </header>
