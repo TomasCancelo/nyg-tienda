@@ -11,11 +11,15 @@ type Producto = {
   destacado: boolean | null;
 };
 
+export const revalidate = 0;
+export const dynamic = "force-dynamic";
+
 async function getProductosDestacados(): Promise<Producto[]> {
   const { data, error } = await supabase
     .from("productos")
     .select("id, nombre, descripcion, precio, imagen_url, destacado")
     .eq("destacado", true)
+    .eq("disponible", true)
     .order("id", { ascending: true });
 
   if (error) throw new Error(error.message);
