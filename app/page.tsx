@@ -1,6 +1,24 @@
 import { supabase } from "../lib/supabase";
 import DestacadosCarousel from "./components/DestacadosCarousel";
 import Link from "next/link";
+import { Cable, Lightbulb, Sun, Zap, type LucideIcon } from "lucide-react";
+
+const categorias = [
+  { id: 1, nombre: "Iluminación Interior", icono: "Lightbulb" },
+  { id: 2, nombre: "Iluminación Exterior", icono: "Sun" },
+  { id: 17, nombre: "Luz Solar", icono: "Zap" },
+  { id: 3, nombre: "Cables y Cableado", icono: "Cable" },
+] as const;
+
+const iconoLucide: Record<
+  (typeof categorias)[number]["icono"],
+  LucideIcon
+> = {
+  Lightbulb,
+  Sun,
+  Zap,
+  Cable,
+};
 
 type Producto = {
   id: number;
@@ -25,13 +43,6 @@ async function getProductosDestacados(): Promise<Producto[]> {
   if (error) throw new Error(error.message);
   return (data ?? []) as Producto[];
 }
-
-const categorias = [
-  { nombre: "Lamparas y Cintas LED", icono: "💡", slug: "lamparas" },
-  { nombre: "Luz Solar", icono: "☀️", slug: "solar" },
-  { nombre: "Uso Interior", icono: "🏠", slug: "interior" },
-  { nombre: "Accesorios Varios", icono: "🔧", slug: "accesorios" },
-];
 
 export default async function Home() {
   const productosDestacados = await getProductosDestacados();
@@ -91,16 +102,25 @@ export default async function Home() {
             <p className="mt-2 text-sm text-zinc-400">Encontra lo que estas buscando segun su categoria.</p>
           </div>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            {categorias.map((cat) => (
-              <Link
-                key={cat.slug}
-                href={`/productos?categoria=${cat.slug}`}
-                className="group flex flex-col items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-6 text-center transition duration-200 hover:-translate-y-2 hover:border-orange-500/50 hover:bg-orange-500/10 hover:shadow-lg hover:shadow-orange-500/10"
-              >
-                <span className="text-4xl">{cat.icono}</span>
-                <span className="text-sm font-medium text-zinc-200 group-hover:text-orange-200">{cat.nombre}</span>
-              </Link>
-            ))}
+            {categorias.map((cat) => {
+              const Icon = iconoLucide[cat.icono];
+              return (
+                <Link
+                  key={cat.id}
+                  href={`/productos?categorias=${cat.id}`}
+                  className="group flex flex-col items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-6 text-center transition duration-200 hover:-translate-y-2 hover:border-orange-500/50 hover:bg-orange-500/10 hover:shadow-lg hover:shadow-orange-500/10"
+                >
+                  <Icon
+                    className="h-10 w-10 text-zinc-200 transition group-hover:text-orange-300"
+                    strokeWidth={1.5}
+                    aria-hidden
+                  />
+                  <span className="text-sm font-medium text-zinc-200 group-hover:text-orange-200">
+                    {cat.nombre}
+                  </span>
+                </Link>
+              );
+            })}
           </div>
         </section>
 

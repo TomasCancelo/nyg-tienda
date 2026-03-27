@@ -167,9 +167,6 @@ export default async function ProductoPage({
             <p className="mt-2 text-sm text-gray-400">
               Código: {meta?.codigo ?? "Sin código"}
             </p>
-            <p className="mt-5 text-4xl font-bold text-white">
-              {formatUYU(producto.precio)}
-            </p>
             <span
               className={`mt-4 inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
                 meta?.disponible === false
@@ -236,9 +233,7 @@ export default async function ProductoPage({
                     <h3 className="line-clamp-2 text-sm font-semibold text-white">
                       {p.nombre}
                     </h3>
-                    <p className="pt-1 text-sm font-bold text-white">
-                      {formatUYU(p.precio)}
-                    </p>
+                    {/* El precio no se muestra en la vista pública */}
                   </div>
                 </Link>
               </article>

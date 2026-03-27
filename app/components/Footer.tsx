@@ -58,7 +58,7 @@ export default function Footer() {
         </div>
       </div>
       <div className="border-t border-white/10 py-4 text-center text-xs text-zinc-500">
-        <p>2025 NYG - Materiales electricos - Maldonado, Uruguay</p>
+        <p>2025 N&amp;G - Materiales electricos - Maldonado, Uruguay</p>
       </div>
     </footer>
   );

@@ -18,7 +18,6 @@ type Props = {
 export default function DestacadosCarousel({ productos }: Props) {
   const trackRef = useRef<HTMLDivElement | null>(null);
   const animFrameRef = useRef<number | null>(null);
-  const isPausedRef = useRef(false);
   const isDraggingRef = useRef(false);
   const startXRef = useRef(0);
   const scrollLeftRef = useRef(0);
@@ -38,7 +37,7 @@ export default function DestacadosCarousel({ productos }: Props) {
     container.scrollLeft = oneSetWidth;
 
     const animate = () => {
-      if (!isPausedRef.current && container) {
+      if (container) {
         container.scrollLeft += SPEED;
         if (container.scrollLeft >= oneSetWidth * 2) {
           container.scrollLeft -= oneSetWidth;
@@ -56,14 +55,10 @@ export default function DestacadosCarousel({ productos }: Props) {
     };
   }, [productos]);
 
-  const pause = () => { isPausedRef.current = true; };
-  const resume = () => { isPausedRef.current = false; };
-
   const startDrag = (clientX: number) => {
     const container = trackRef.current;
     if (!container) return;
     isDraggingRef.current = true;
-    isPausedRef.current = true;
     startXRef.current = clientX;
     scrollLeftRef.current = container.scrollLeft;
     dragDistanceRef.current = 0;
@@ -79,7 +74,6 @@ export default function DestacadosCarousel({ productos }: Props) {
 
   const endDrag = () => {
     isDraggingRef.current = false;
-    isPausedRef.current = false;
   };
 
   const handleClick = (e: React.MouseEvent) => {
@@ -102,8 +96,6 @@ export default function DestacadosCarousel({ productos }: Props) {
       ref={trackRef}
       className="flex gap-4 overflow-hidden cursor-grab active:cursor-grabbing py-2 px-2"
       style={{ scrollBehavior: 'auto' }}
-      onMouseEnter={pause}
-      onMouseLeave={() => { endDrag(); resume(); }}
       onMouseDown={(e) => { e.preventDefault(); startDrag(e.clientX); }}
       onMouseMove={(e) => { if (!isDraggingRef.current) return; e.preventDefault(); moveDrag(e.clientX); }}
       onMouseUp={endDrag}
@@ -143,13 +135,7 @@ export default function DestacadosCarousel({ productos }: Props) {
                 {producto.descripcion}
               </p>
             </div>
-            <p className="mt-3 text-base font-semibold text-[#F97316]">
-              {new Intl.NumberFormat("es-UY", {
-                style: "currency",
-                currency: "UYU",
-                maximumFractionDigits: 0,
-              }).format(producto.precio)}
-            </p>
+            {/* El precio no se muestra en la vista pública */}
           </div>
         </Link>
       ))}
