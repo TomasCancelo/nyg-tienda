@@ -7,7 +7,8 @@ type ProductoDestacado = {
   id: number;
   nombre: string;
   descripcion: string;
-  precio: number;
+  precio_costo: number | null;
+  multiplicador_venta: number | null;
   imagen_url: string | null;
 };
 

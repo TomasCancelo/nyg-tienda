@@ -24,7 +24,8 @@ type Producto = {
   id: number;
   nombre: string;
   descripcion: string;
-  precio: number;
+  precio_costo: number | null;
+  multiplicador_venta: number | null;
   imagen_url: string | null;
   destacado: boolean | null;
 };
@@ -35,7 +36,9 @@ export const dynamic = "force-dynamic";
 async function getProductosDestacados(): Promise<Producto[]> {
   const { data, error } = await supabase
     .from("productos")
-    .select("id, nombre, descripcion, precio, imagen_url, destacado")
+    .select(
+      "id, nombre, descripcion, precio_costo, multiplicador_venta, imagen_url, destacado",
+    )
     .eq("destacado", true)
     .eq("disponible", true)
     .order("id", { ascending: true });
