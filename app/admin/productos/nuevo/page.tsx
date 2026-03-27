@@ -10,7 +10,10 @@ type Opcion = { id: number; nombre: string };
 type FormState = {
   nombre: string;
   descripcion: string;
-  precio: string;
+  moneda: "USD" | "UYU";
+  precio_costo: string;
+  multiplicador_venta: string;
+  multiplicador_instalador: string;
   imagen_url: string;
   disponible: boolean;
   destacado: boolean;
@@ -23,7 +26,10 @@ type FormState = {
 const initialState: FormState = {
   nombre: "",
   descripcion: "",
-  precio: "",
+  moneda: "USD",
+  precio_costo: "",
+  multiplicador_venta: "",
+  multiplicador_instalador: "",
   imagen_url: "",
   disponible: true,
   destacado: false,
@@ -73,7 +79,14 @@ export default function NuevoProductoPage() {
     const payload = {
       nombre: form.nombre.trim(),
       descripcion: form.descripcion.trim() || null,
-      precio: Number(form.precio),
+      moneda: form.moneda,
+      precio_costo: form.precio_costo ? Number(form.precio_costo) : null,
+      multiplicador_venta: form.multiplicador_venta
+        ? Number(form.multiplicador_venta)
+        : null,
+      multiplicador_instalador: form.multiplicador_instalador
+        ? Number(form.multiplicador_instalador)
+        : null,
       imagen_url: form.imagen_url.trim() || null,
       disponible: form.disponible,
       destacado: form.destacado,
@@ -119,16 +132,54 @@ export default function NuevoProductoPage() {
             placeholder="Descripción"
             className="min-h-28 w-full rounded-lg border border-gray-700 bg-black px-3 py-2.5"
           />
-          <input
-            required
-            type="number"
-            min="0"
-            step="0.01"
-            value={form.precio}
-            onChange={(e) => setForm((s) => ({ ...s, precio: e.target.value }))}
-            placeholder="Precio"
-            className="w-full rounded-lg border border-gray-700 bg-black px-3 py-2.5"
-          />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <select
+              value={form.moneda}
+              onChange={(e) =>
+                setForm((s) => ({ ...s, moneda: e.target.value as "USD" | "UYU" }))
+              }
+              className="rounded-lg border border-gray-700 bg-black px-3 py-2.5"
+            >
+              <option value="USD">USD</option>
+              <option value="UYU">UYU</option>
+            </select>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={form.precio_costo}
+              onChange={(e) =>
+                setForm((s) => ({ ...s, precio_costo: e.target.value }))
+              }
+              placeholder="Precio costo"
+              className="w-full rounded-lg border border-gray-700 bg-black px-3 py-2.5"
+            />
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={form.multiplicador_venta}
+              onChange={(e) =>
+                setForm((s) => ({ ...s, multiplicador_venta: e.target.value }))
+              }
+              placeholder="Multiplicador venta"
+              className="w-full rounded-lg border border-gray-700 bg-black px-3 py-2.5"
+            />
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={form.multiplicador_instalador}
+              onChange={(e) =>
+                setForm((s) => ({
+                  ...s,
+                  multiplicador_instalador: e.target.value,
+                }))
+              }
+              placeholder="Multiplicador instalador"
+              className="w-full rounded-lg border border-gray-700 bg-black px-3 py-2.5"
+            />
+          </div>
           <input
             value={form.imagen_url}
             onChange={(e) =>

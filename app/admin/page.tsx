@@ -12,7 +12,10 @@ type ProductoAdmin = {
   id: number;
   nombre: string;
   codigo: string | null;
-  precio: number;
+  moneda: "USD" | "UYU" | null;
+  precio_costo: number | null;
+  multiplicador_venta: number | null;
+  multiplicador_instalador: number | null;
   imagen_url: string | null;
   disponible: boolean | null;
   destacado: boolean | null;
@@ -38,6 +41,24 @@ function formatUYU(price: number) {
     currency: "UYU",
     maximumFractionDigits: 0,
   }).format(price);
+}
+
+function calcPrecio(costo: number | null, multiplicador: number | null): number | null {
+  if (
+    costo == null ||
+    multiplicador == null ||
+    !Number.isFinite(costo) ||
+    !Number.isFinite(multiplicador)
+  ) {
+    return null;
+  }
+  return costo * multiplicador;
+}
+
+function formatByMoneda(moneda: "USD" | "UYU" | null, amount: number | null): string {
+  if (amount == null || !Number.isFinite(amount)) return "-";
+  const currency = moneda ?? "USD";
+  return `${currency} ${amount.toFixed(2)}`;
 }
 
 const normalizar = (str: string) => str.toLowerCase().replace(/[-\s]/g, "");
@@ -225,7 +246,7 @@ export default function AdminPage() {
     precioMax,
   ]);
 
-  const colSpan = 10;
+  const colSpan = 13;
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -410,7 +431,10 @@ export default function AdminPage() {
                   <th className="px-3 py-3">Imagen</th>
                   <th className="px-3 py-3">Nombre</th>
                   <th className="px-3 py-3">Código</th>
-                  <th className="px-3 py-3">Precio</th>
+                  <th className="px-3 py-3">Costo</th>
+                  <th className="px-3 py-3">Venta</th>
+                  <th className="px-3 py-3">Instalador</th>
+                  <th className="px-3 py-3">Moneda</th>
                   <th className="px-3 py-3">Categoría</th>
                   <th className="px-3 py-3">Marca</th>
                   <th className="px-3 py-3">Proveedor</th>
@@ -467,9 +491,22 @@ export default function AdminPage() {
                       <td className="px-3 py-3 text-gray-300">
                         {p.codigo ?? "-"}
                       </td>
-                      <td className="px-3 py-3 text-amber-400">
-                        {formatUYU(p.precio)}
+                      <td className="px-3 py-3 text-gray-300">
+                        {formatByMoneda(p.moneda, p.precio_costo)}
                       </td>
+                      <td className="px-3 py-3 text-gray-300">
+                        {formatByMoneda(
+                          p.moneda,
+                          calcPrecio(p.precio_costo, p.multiplicador_venta),
+                        )}
+                      </td>
+                      <td className="px-3 py-3 text-gray-300">
+                        {formatByMoneda(
+                          p.moneda,
+                          calcPrecio(p.precio_costo, p.multiplicador_instalador),
+                        )}
+                      </td>
+                      <td className="px-3 py-3 text-gray-300">{p.moneda ?? "-"}</td>
                       <td className="px-3 py-3 text-gray-300">
                         {relNombre(p.categorias) === "-"
                           ? "Sin categoría"
