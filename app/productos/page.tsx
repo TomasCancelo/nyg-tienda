@@ -36,7 +36,8 @@ type ProductoRow = {
   id: number;
   nombre: string;
   codigo: string | null;
-  precio: number;
+  precio_costo: number | null;
+  multiplicador_venta: number | null;
   imagen_url: string | null;
   disponible: boolean;
   categoria_id: number | null;
@@ -296,7 +297,7 @@ function ProductosCatalogoInner() {
         let query = supabase
           .from("productos")
           .select(
-            "id, nombre, codigo, precio, imagen_url, disponible, categoria_id, marca_id, marcas ( nombre )",
+            "id, nombre, codigo, precio_costo, multiplicador_venta, imagen_url, disponible, categoria_id, marca_id, marcas ( nombre )",
           )
           .order("nombre", { ascending: true });
 

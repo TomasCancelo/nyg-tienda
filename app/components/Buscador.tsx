@@ -9,7 +9,8 @@ import { supabase } from "@/lib/supabase";
 type ProductoBusqueda = {
   id: number;
   nombre: string;
-  precio: number;
+  precio_costo: number | null;
+  multiplicador_venta: number | null;
   imagen_url: string | null;
   categoria_id: number | null;
 };
@@ -70,7 +71,7 @@ export default function Buscador({ isOpen, onOpen, onClose }: BuscadorProps) {
       setLoading(true);
       const { data, error } = await supabase
         .from("productos")
-        .select("id, nombre, precio, imagen_url, categoria_id")
+        .select("id, nombre, precio_costo, multiplicador_venta, imagen_url, categoria_id")
         .ilike("nombre", `%${texto}%`)
         .limit(6);
 
@@ -165,13 +166,7 @@ export default function Buscador({ isOpen, onOpen, onClose }: BuscadorProps) {
                         <p className="truncate text-sm font-medium text-white">
                           {producto.nombre}
                         </p>
-                        <p className="text-xs font-semibold text-amber-400">
-                          {Number(producto.precio).toLocaleString("es-UY", {
-                            style: "currency",
-                            currency: "UYU",
-                            maximumFractionDigits: 0,
-                          })}
-                        </p>
+                        <p className="text-xs font-semibold text-amber-400">-</p>
                       </div>
                     </Link>
                   ))

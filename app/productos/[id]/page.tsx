@@ -6,7 +6,8 @@ type Producto = {
   id: number;
   nombre: string;
   descripcion: string;
-  precio: number;
+  precio_costo: number | null;
+  multiplicador_venta: number | null;
   imagen_url: string | null;
 };
 
@@ -24,7 +25,8 @@ type Categoria = {
 type ProductoRelacionado = {
   id: number;
   nombre: string;
-  precio: number;
+  precio_costo: number | null;
+  multiplicador_venta: number | null;
   imagen_url: string | null;
   marcas: { nombre: string } | null;
 };
@@ -32,7 +34,8 @@ type ProductoRelacionado = {
 type ProductoRelacionadoRaw = {
   id: number;
   nombre: string;
-  precio: number;
+  precio_costo: number | null;
+  multiplicador_venta: number | null;
   imagen_url: string | null;
   marcas: { nombre: string }[] | null;
 };
@@ -57,7 +60,7 @@ export default async function ProductoPage({
 
   const { data: producto, error: productoError } = await supabase
     .from("productos")
-    .select("id, nombre, descripcion, precio, imagen_url")
+    .select("id, nombre, descripcion, precio_costo, multiplicador_venta, imagen_url")
     .eq("id", productId)
     .maybeSingle();
 
@@ -98,7 +101,7 @@ export default async function ProductoPage({
 
   let relacionadosQuery = supabase
     .from("productos")
-    .select("id, nombre, precio, imagen_url, marcas ( nombre )")
+    .select("id, nombre, precio_costo, multiplicador_venta, imagen_url, marcas ( nombre )")
     .neq("id", productId)
     .order("id", { ascending: true });
 
