@@ -229,8 +229,13 @@ export default function AdminPage() {
       if (filterDestacado === "destacados" && !p.destacado) return false;
       if (filterDestacado === "no_destacados" && Boolean(p.destacado)) return false;
 
-      if (minN != null && !Number.isNaN(minN) && p.precio < minN) return false;
-      if (maxN != null && !Number.isNaN(maxN) && p.precio > maxN) return false;
+      const ventaPrecio = calcPrecio(p.precio_costo, p.multiplicador_venta);
+      if (minN != null && !Number.isNaN(minN)) {
+        if (ventaPrecio == null || ventaPrecio < minN) return false;
+      }
+      if (maxN != null && !Number.isNaN(maxN)) {
+        if (ventaPrecio == null || ventaPrecio > maxN) return false;
+      }
 
       return true;
     });
@@ -261,6 +266,12 @@ export default function AdminPage() {
               className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-black transition hover:bg-amber-400"
             >
               Agregar producto
+            </Link>
+            <Link
+              href="/admin/presupuesto"
+              className="rounded-lg border border-gray-700 px-4 py-2 text-sm font-semibold text-white transition hover:border-amber-500 hover:text-amber-400"
+            >
+              Presupuestos
             </Link>
             <Link
               href="/admin/proveedores"
