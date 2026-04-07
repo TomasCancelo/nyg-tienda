@@ -702,29 +702,27 @@ export default function AdminPresupuestoPage() {
           <p className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-400">
             Moneda del presupuesto
           </p>
-          <div className="inline-flex rounded-lg p-0.5 ring-1 ring-gray-700">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-white">USD</span>
             <button
               type="button"
-              onClick={() => setMonedaPresupuesto("USD")}
-              className={`rounded-md px-4 py-2 text-sm font-semibold transition-colors ${
-                monedaPresupuesto === "USD"
-                  ? "bg-amber-500 text-black"
-                  : "bg-gray-700 text-white"
-              }`}
+              role="switch"
+              aria-checked={monedaPresupuesto === "UYU"}
+              aria-label="Moneda: USD o UYU"
+              onClick={() =>
+                setMonedaPresupuesto((m) => (m === "USD" ? "UYU" : "USD"))
+              }
+              className="relative h-7 w-14 shrink-0 rounded-full bg-gray-800 p-0.5 outline-none ring-amber-500/30 focus-visible:ring-2"
             >
-              USD
+              <span
+                className={`pointer-events-none absolute top-0.5 left-0.5 block h-6 w-6 rounded-full bg-amber-500 shadow-sm transition-all duration-300 ease-out ${
+                  monedaPresupuesto === "UYU"
+                    ? "translate-x-[1.75rem]"
+                    : "translate-x-0"
+                }`}
+              />
             </button>
-            <button
-              type="button"
-              onClick={() => setMonedaPresupuesto("UYU")}
-              className={`rounded-md px-4 py-2 text-sm font-semibold transition-colors ${
-                monedaPresupuesto === "UYU"
-                  ? "bg-amber-500 text-black"
-                  : "bg-gray-700 text-white"
-              }`}
-            >
-              UYU
-            </button>
+            <span className="text-xs font-medium text-white">UYU</span>
           </div>
           <div
             className={`transition-all duration-300 ease-out ${
