@@ -117,148 +117,213 @@ export default function NuevoProductoPage() {
           onSubmit={onSubmit}
           className="space-y-4 rounded-xl border border-gray-800 bg-zinc-900 p-5"
         >
-          <input
-            required
-            value={form.nombre}
-            onChange={(e) => setForm((s) => ({ ...s, nombre: e.target.value }))}
-            placeholder="Nombre"
-            className="w-full rounded-lg border border-gray-700 bg-black px-3 py-2.5"
-          />
-          <textarea
-            value={form.descripcion}
-            onChange={(e) =>
-              setForm((s) => ({ ...s, descripcion: e.target.value }))
-            }
-            placeholder="Descripción"
-            className="min-h-28 w-full rounded-lg border border-gray-700 bg-black px-3 py-2.5"
-          />
-          <div className="grid gap-3 sm:grid-cols-2">
-            <select
-              value={form.moneda}
-              onChange={(e) =>
-                setForm((s) => ({ ...s, moneda: e.target.value as "USD" | "UYU" }))
-              }
-              className="rounded-lg border border-gray-700 bg-black px-3 py-2.5"
-            >
-              <option value="USD">USD</option>
-              <option value="UYU">UYU</option>
-            </select>
+          <div>
+            <p className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-400">
+              Nombre del producto
+            </p>
             <input
-              type="number"
-              min="0"
-              step="0.01"
-              value={form.precio_costo}
-              onChange={(e) =>
-                setForm((s) => ({ ...s, precio_costo: e.target.value }))
-              }
-              placeholder="Precio costo"
-              className="w-full rounded-lg border border-gray-700 bg-black px-3 py-2.5"
-            />
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              value={form.multiplicador_venta}
-              onChange={(e) =>
-                setForm((s) => ({ ...s, multiplicador_venta: e.target.value }))
-              }
-              placeholder="Multiplicador venta"
-              className="w-full rounded-lg border border-gray-700 bg-black px-3 py-2.5"
-            />
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              value={form.multiplicador_instalador}
-              onChange={(e) =>
-                setForm((s) => ({
-                  ...s,
-                  multiplicador_instalador: e.target.value,
-                }))
-              }
-              placeholder="Multiplicador instalador"
+              required
+              value={form.nombre}
+              onChange={(e) => setForm((s) => ({ ...s, nombre: e.target.value }))}
+              placeholder="Nombre"
               className="w-full rounded-lg border border-gray-700 bg-black px-3 py-2.5"
             />
           </div>
-          <input
-            value={form.imagen_url}
-            onChange={(e) =>
-              setForm((s) => ({ ...s, imagen_url: e.target.value }))
-            }
-            placeholder="URL de imagen"
-            className="w-full rounded-lg border border-gray-700 bg-black px-3 py-2.5"
-          />
-          <input
-            value={form.codigo}
-            onChange={(e) => setForm((s) => ({ ...s, codigo: e.target.value }))}
-            placeholder="Código"
-            className="w-full rounded-lg border border-gray-700 bg-black px-3 py-2.5"
-          />
+          <div>
+            <p className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-400">
+              Descripcion
+            </p>
+            <textarea
+              value={form.descripcion}
+              onChange={(e) =>
+                setForm((s) => ({ ...s, descripcion: e.target.value }))
+              }
+              placeholder="Descripción"
+              className="min-h-28 w-full rounded-lg border border-gray-700 bg-black px-3 py-2.5"
+            />
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <p className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-400">
+                Moneda
+              </p>
+              <select
+                value={form.moneda}
+                onChange={(e) =>
+                  setForm((s) => ({ ...s, moneda: e.target.value as "USD" | "UYU" }))
+                }
+                className="w-full rounded-lg border border-gray-700 bg-black px-3 py-2.5"
+              >
+                <option value="USD">USD</option>
+                <option value="UYU">UYU</option>
+              </select>
+            </div>
+            <div>
+              <p className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-400">
+                Precio costo
+              </p>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={form.precio_costo}
+                onChange={(e) =>
+                  setForm((s) => ({ ...s, precio_costo: e.target.value }))
+                }
+                placeholder="Precio costo"
+                className="w-full rounded-lg border border-gray-700 bg-black px-3 py-2.5"
+              />
+            </div>
+            <div>
+              <p className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-400">
+                Multiplicador venta (ej: 1.7)
+              </p>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={form.multiplicador_venta}
+                onChange={(e) =>
+                  setForm((s) => ({ ...s, multiplicador_venta: e.target.value }))
+                }
+                placeholder="Multiplicador venta"
+                className="w-full rounded-lg border border-gray-700 bg-black px-3 py-2.5"
+              />
+            </div>
+            <div>
+              <p className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-400">
+                Multiplicador instalador (ej: 1.5)
+              </p>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={form.multiplicador_instalador}
+                onChange={(e) =>
+                  setForm((s) => ({
+                    ...s,
+                    multiplicador_instalador: e.target.value,
+                  }))
+                }
+                placeholder="Multiplicador instalador"
+                className="w-full rounded-lg border border-gray-700 bg-black px-3 py-2.5"
+              />
+            </div>
+          </div>
+          <div>
+            <p className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-400">
+              URL de imagen
+            </p>
+            <input
+              value={form.imagen_url}
+              onChange={(e) =>
+                setForm((s) => ({ ...s, imagen_url: e.target.value }))
+              }
+              placeholder="URL de imagen"
+              className="w-full rounded-lg border border-gray-700 bg-black px-3 py-2.5"
+            />
+          </div>
+          <div>
+            <p className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-400">
+              Codigo del producto
+            </p>
+            <input
+              value={form.codigo}
+              onChange={(e) => setForm((s) => ({ ...s, codigo: e.target.value }))}
+              placeholder="Código"
+              className="w-full rounded-lg border border-gray-700 bg-black px-3 py-2.5"
+            />
+          </div>
 
           <div className="grid gap-3 sm:grid-cols-3">
-            <select
-              value={form.categoria_id}
-              onChange={(e) =>
-                setForm((s) => ({ ...s, categoria_id: e.target.value }))
-              }
-              className="rounded-lg border border-gray-700 bg-black px-3 py-2.5"
-            >
-              <option value="">Categoría</option>
-              {categorias.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.nombre}
-                </option>
-              ))}
-            </select>
-            <select
-              value={form.marca_id}
-              onChange={(e) => setForm((s) => ({ ...s, marca_id: e.target.value }))}
-              className="rounded-lg border border-gray-700 bg-black px-3 py-2.5"
-            >
-              <option value="">Marca</option>
-              {marcas.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.nombre}
-                </option>
-              ))}
-            </select>
-            <select
-              value={form.proveedor_id}
-              onChange={(e) =>
-                setForm((s) => ({ ...s, proveedor_id: e.target.value }))
-              }
-              className="rounded-lg border border-gray-700 bg-black px-3 py-2.5"
-            >
-              <option value="">Proveedor</option>
-              {proveedores.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.nombre}
-                </option>
-              ))}
-            </select>
+            <div>
+              <p className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-400">
+                Categoria
+              </p>
+              <select
+                value={form.categoria_id}
+                onChange={(e) =>
+                  setForm((s) => ({ ...s, categoria_id: e.target.value }))
+                }
+                className="w-full rounded-lg border border-gray-700 bg-black px-3 py-2.5"
+              >
+                <option value="">Categoría</option>
+                {categorias.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <p className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-400">
+                Marca
+              </p>
+              <select
+                value={form.marca_id}
+                onChange={(e) => setForm((s) => ({ ...s, marca_id: e.target.value }))}
+                className="w-full rounded-lg border border-gray-700 bg-black px-3 py-2.5"
+              >
+                <option value="">Marca</option>
+                {marcas.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <p className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-400">
+                Proveedor
+              </p>
+              <select
+                value={form.proveedor_id}
+                onChange={(e) =>
+                  setForm((s) => ({ ...s, proveedor_id: e.target.value }))
+                }
+                className="w-full rounded-lg border border-gray-700 bg-black px-3 py-2.5"
+              >
+                <option value="">Proveedor</option>
+                {proveedores.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
-          <div className="flex items-center gap-6">
-            <label className="inline-flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={form.disponible}
-                onChange={(e) =>
-                  setForm((s) => ({ ...s, disponible: e.target.checked }))
-                }
-              />
-              Disponible
-            </label>
-            <label className="inline-flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={form.destacado}
-                onChange={(e) =>
-                  setForm((s) => ({ ...s, destacado: e.target.checked }))
-                }
-              />
-              Destacado
-            </label>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <p className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-400">
+                Disponible
+              </p>
+              <label className="inline-flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={form.disponible}
+                  onChange={(e) =>
+                    setForm((s) => ({ ...s, disponible: e.target.checked }))
+                  }
+                />
+                Disponible
+              </label>
+            </div>
+            <div>
+              <p className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-400">
+                Destacado
+              </p>
+              <label className="inline-flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={form.destacado}
+                  onChange={(e) =>
+                    setForm((s) => ({ ...s, destacado: e.target.checked }))
+                  }
+                />
+                Destacado
+              </label>
+            </div>
           </div>
 
           {error ? <p className="text-sm text-red-400">{error}</p> : null}
