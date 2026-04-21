@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 
 const STORY_IMG_PLACEHOLDER =
-  "https://images.unsplash.com/photo-1621905252472-7af2864a9428?w=900";
+  "https://thqmpndhlqknwactxcik.supabase.co/storage/v1/object/public/productos/local.PNG";
 
 const inViewBlock = {
   initial: { opacity: 0, y: 50 },
