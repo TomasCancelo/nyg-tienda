@@ -1,12 +1,10 @@
 "use client";
 
-import { supabase } from "@/lib/supabase";
+import { createBrowserClient } from "@supabase/ssr";
 import { ExternalLink, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
-
-const PRESUPUESTO_PREFILL_KEY = "nyg_presupuesto_desde_consulta";
+import { useEffect, useMemo, useState } from "react";
 
 type EstadoConsulta = "pendiente" | "en proceso" | "completado" | "cancelado";
 
@@ -28,30 +26,36 @@ type ConsultaRow = {
 };
 
 function parseProductos(raw: string | unknown): ProductoConsulta[] {
-  if (typeof raw !== "string") return [];
-  try {
-    const parsed = JSON.parse(raw) as unknown;
-    if (!Array.isArray(parsed)) return [];
-    return parsed
-      .filter(
-        (p): p is ProductoConsulta =>
-          p != null &&
-          typeof p === "object" &&
-          typeof (p as ProductoConsulta).id === "number" &&
-          typeof (p as ProductoConsulta).nombre === "string",
-      )
-      .map((p) => ({
-        id: p.id,
-        nombre: p.nombre,
-        codigo: typeof p.codigo === "string" ? p.codigo : "Sin código",
-        cantidad:
-          typeof p.cantidad === "number" && p.cantidad > 0
-            ? Math.floor(p.cantidad)
-            : 1,
-      }));
-  } catch {
+  let parsed: unknown;
+  if (Array.isArray(raw)) {
+    parsed = raw;
+  } else if (typeof raw === "string") {
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      return [];
+    }
+  } else {
     return [];
   }
+  if (!Array.isArray(parsed)) return [];
+  return parsed
+    .filter(
+      (p): p is ProductoConsulta =>
+        p != null &&
+        typeof p === "object" &&
+        typeof (p as ProductoConsulta).id === "number" &&
+        typeof (p as ProductoConsulta).nombre === "string",
+    )
+    .map((p) => ({
+      id: p.id,
+      nombre: p.nombre,
+      codigo: typeof p.codigo === "string" ? p.codigo : "Sin código",
+      cantidad:
+        typeof p.cantidad === "number" && p.cantidad > 0
+          ? Math.floor(p.cantidad)
+          : 1,
+    }));
 }
 
 function telefonoParaWa(tel: string): string {
@@ -79,40 +83,81 @@ function badgeEstado(estado: string): string {
 const selectClase =
   "rounded-lg border border-gray-700 bg-gray-800 px-2 py-1.5 text-sm text-white outline-none focus:border-amber-500/50";
 
+function formatSupabaseError(err: {
+  message: string;
+  code?: string;
+  details?: string;
+  hint?: string;
+}): string {
+  const parts = [err.message];
+  if (err.code) parts.push(`Código: ${err.code}`);
+  if (err.details) parts.push(`Detalle: ${err.details}`);
+  if (err.hint) parts.push(`Sugerencia: ${err.hint}`);
+  return parts.join("\n");
+}
+
 export default function AdminConsultasPage() {
   const router = useRouter();
+  const supabase = useMemo(
+    () =>
+      createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      ),
+    [],
+  );
+
   const [consultas, setConsultas] = useState<ConsultaRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [sesionInfo, setSesionInfo] = useState<string | null>(null);
   const [filtroEstado, setFiltroEstado] = useState<string>("");
   const [detalleId, setDetalleId] = useState<string | number | null>(null);
   const [updatingId, setUpdatingId] = useState<string | number | null>(null);
 
-  const fetchConsultas = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    let q = supabase
-      .from("consultas")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (filtroEstado) {
-      q = q.eq("estado", filtroEstado);
-    }
-
-    const { data, error: err } = await q;
-    if (err) {
-      setError(err.message);
-      setConsultas([]);
-    } else {
-      setConsultas((data ?? []) as ConsultaRow[]);
-    }
-    setLoading(false);
-  }, [filtroEstado]);
-
   useEffect(() => {
-    void fetchConsultas();
-  }, [fetchConsultas]);
+    let cancelled = false;
+
+    (async () => {
+      setLoading(true);
+      setError("");
+      setSesionInfo(null);
+
+      const { data: sessionData } = await supabase.auth.getSession();
+      const email = sessionData.session?.user?.email;
+      setSesionInfo(
+        email
+          ? `Sesión activa: ${email}`
+          : "No hay sesión de administrador. Iniciá sesión en /admin/login para que RLS permita leer las consultas.",
+      );
+
+      const { data, error: fetchError } = await supabase
+        .from("consultas")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      console.log("consultas:", data, "error:", fetchError);
+
+      if (cancelled) return;
+
+      if (fetchError) {
+        setError(formatSupabaseError(fetchError));
+        setConsultas([]);
+      } else {
+        setConsultas((data ?? []) as ConsultaRow[]);
+      }
+      setLoading(false);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [supabase]);
+
+  const consultasFiltradas = useMemo(() => {
+    if (!filtroEstado) return consultas;
+    return consultas.filter((c) => c.estado === filtroEstado);
+  }, [consultas, filtroEstado]);
 
   const onSignOut = async () => {
     await supabase.auth.signOut();
@@ -147,13 +192,13 @@ export default function AdminConsultasPage() {
   );
 
   const abrirPresupuestoConProductos = () => {
-    if (!productosDetalle.length) return;
-    const payload = productosDetalle.map((p) => ({
-      id: p.id,
-      cantidad: p.cantidad,
-    }));
-    sessionStorage.setItem(PRESUPUESTO_PREFILL_KEY, JSON.stringify(payload));
-    router.push("/admin/presupuesto");
+    if (!consultaDetalle || !productosDetalle.length) return;
+    const nombre = encodeURIComponent(consultaDetalle.nombre);
+    const telefono = encodeURIComponent(consultaDetalle.telefono);
+    const productos = encodeURIComponent(JSON.stringify(productosDetalle));
+    router.push(
+      `/admin/presupuesto?nombre=${nombre}&telefono=${telefono}&productos=${productos}`,
+    );
     setDetalleId(null);
   };
 
@@ -201,8 +246,23 @@ export default function AdminConsultasPage() {
           </label>
         </div>
 
+        {sesionInfo ? (
+          <p
+            className={`mb-3 text-sm ${
+              sesionInfo.startsWith("No hay sesión")
+                ? "text-amber-400"
+                : "text-gray-500"
+            }`}
+          >
+            {sesionInfo}
+          </p>
+        ) : null}
+
         {error ? (
-          <div className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          <div className="mb-4 whitespace-pre-wrap rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 font-mono text-sm text-red-200">
+            <p className="mb-1 font-sans font-semibold text-red-300">
+              Error al cargar consultas
+            </p>
             {error}
           </div>
         ) : null}
@@ -227,14 +287,24 @@ export default function AdminConsultasPage() {
                       Cargando…
                     </td>
                   </tr>
-                ) : consultas.length === 0 ? (
+                ) : error ? (
+                  <tr>
+                    <td
+                      className="whitespace-pre-wrap px-3 py-8 text-left font-mono text-sm text-red-300"
+                      colSpan={6}
+                    >
+                      {error}
+                    </td>
+                  </tr>
+                ) : consultasFiltradas.length === 0 ? (
                   <tr>
                     <td className="px-3 py-8 text-center text-gray-400" colSpan={6}>
-                      No hay consultas.
+                      No hay consultas
+                      {filtroEstado ? " con este filtro" : ""}.
                     </td>
                   </tr>
                 ) : (
-                  consultas.map((c) => {
+                  consultasFiltradas.map((c) => {
                     const lista = parseProductos(c.productos);
                     return (
                       <tr key={c.id} className="hover:bg-zinc-900/70">

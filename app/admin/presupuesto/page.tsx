@@ -5,11 +5,13 @@ import autoTable from "jspdf-autotable";
 import { jsPDF } from "jspdf";
 import { FileText, Plus, X } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   FormEvent,
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -18,7 +20,6 @@ const LOGO_URL =
   "https://thqmpndhlqknwactxcik.supabase.co/storage/v1/object/public/productos/logo.PNG";
 
 const STORAGE_NUMERO_KEY = "nyg-presupuesto-consecutivo";
-const PRESUPUESTO_PREFILL_KEY = "nyg_presupuesto_desde_consulta";
 
 const inputClase =
   "w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder:text-gray-500 outline-none focus:border-amber-500/50";
@@ -154,6 +155,9 @@ async function imagenABase64(url: string): Promise<string | null> {
 }
 
 export default function AdminPresupuestoPage() {
+  const searchParams = useSearchParams();
+  const urlParamsLeidos = useRef(false);
+
   const supabase = useMemo(
     () =>
       createBrowserClient(
@@ -203,32 +207,55 @@ export default function AdminPresupuestoPage() {
   }, []);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const raw = sessionStorage.getItem(PRESUPUESTO_PREFILL_KEY);
-    if (!raw) return;
-    sessionStorage.removeItem(PRESUPUESTO_PREFILL_KEY);
+    if (urlParamsLeidos.current) return;
+    urlParamsLeidos.current = true;
+
+    const nombre = searchParams.get("nombre");
+    const telefono = searchParams.get("telefono");
+    const productosParam = searchParams.get("productos");
+
+    if (nombre) setNombreCliente(nombre);
+    if (telefono) setTelefonoCliente(telefono);
+
+    if (!productosParam) return;
+
     void (async () => {
       try {
-        const items = JSON.parse(raw) as { id: number; cantidad: number }[];
-        if (!Array.isArray(items) || items.length === 0) return;
-        const ids = [...new Set(items.map((i) => i.id))];
+        let parsed: unknown;
+        try {
+          parsed = JSON.parse(productosParam);
+        } catch {
+          parsed = JSON.parse(decodeURIComponent(productosParam));
+        }
+        if (!Array.isArray(parsed) || parsed.length === 0) return;
+
+        const items = parsed as { id: number }[];
+        const ids = [
+          ...new Set(
+            items.map((i) => i.id).filter((id) => Number.isFinite(id)),
+          ),
+        ];
+        if (ids.length === 0) return;
+
         const { data, error } = await supabase
           .from("productos")
           .select(
             "id, nombre, codigo, precio_costo, multiplicador_venta, multiplicador_instalador, proveedores(nombre)",
           )
           .in("id", ids);
+
         if (error || !data?.length) return;
-        const qtyById = new Map<number, number>();
-        for (const it of items) {
-          const add = it.cantidad > 0 ? Math.floor(it.cantidad) : 1;
-          qtyById.set(it.id, (qtyById.get(it.id) ?? 0) + add);
-        }
-        const rows = data as ProductoBusqueda[];
+
+        const byId = new Map(
+          (data as ProductoBusqueda[]).map((p) => [p.id, p]),
+        );
+        const cantidadDefault = 1;
+
         setLineas((prev) => {
           const merged = [...prev];
-          for (const p of rows) {
-            const cantidad = Math.max(1, qtyById.get(p.id) ?? 1);
+          for (const item of items) {
+            const p = byId.get(item.id);
+            if (!p) continue;
             const unitVenta = calcUnit(p.precio_costo, p.multiplicador_venta);
             const unitInstalador = calcUnit(
               p.precio_costo,
@@ -238,14 +265,14 @@ export default function AdminPresupuestoPage() {
             if (idx >= 0) {
               merged[idx] = {
                 ...merged[idx],
-                cantidad: merged[idx].cantidad + cantidad,
+                cantidad: merged[idx].cantidad + cantidadDefault,
               };
             } else {
               merged.push({
                 productoId: p.id,
                 nombre: p.nombre,
                 codigo: p.codigo,
-                cantidad,
+                cantidad: cantidadDefault,
                 tipoPrecio: "venta",
                 unitVenta,
                 unitInstalador,
@@ -255,12 +282,14 @@ export default function AdminPresupuestoPage() {
           }
           return merged;
         });
-        setMensajeExito("Productos cargados desde la consulta.");
+        setMensajeExito("Datos cargados desde la consulta.");
       } catch {
-        // Ignorar JSON inválido
+        // Parámetros inválidos
       }
     })();
-  }, [supabase]);
+    // Solo al montar: leer query de la URL una vez
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     void (async () => {
