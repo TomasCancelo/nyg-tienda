@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { supabase } from "../../../lib/supabase";
+import AgregarConsultaButton from "../../components/AgregarConsultaButton";
 
 type Producto = {
   id: number;
@@ -187,14 +188,25 @@ export default async function ProductoPage({
             </div>
 
             <div className="mt-8 space-y-3">
-              <a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-5 py-3 text-sm font-semibold text-black transition hover:bg-emerald-400"
-              >
-                📱 Consultar por WhatsApp
-              </a>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-5 py-3 text-sm font-semibold text-black transition hover:bg-emerald-400"
+                >
+                  📱 Consultar por WhatsApp
+                </a>
+                <AgregarConsultaButton
+                  className="w-full rounded-xl py-3 text-sm"
+                  producto={{
+                    id: producto.id,
+                    nombre: producto.nombre,
+                    codigo: meta?.codigo,
+                    imagen_url: producto.imagen_url,
+                  }}
+                />
+              </div>
               <Link
                 href="/productos"
                 className="inline-flex w-full items-center justify-center rounded-xl border border-white/25 bg-transparent px-5 py-3 text-sm font-semibold text-white transition hover:border-amber-500 hover:text-amber-500"

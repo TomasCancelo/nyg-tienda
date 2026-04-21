@@ -20,6 +20,7 @@ import {
   X,
 } from "lucide-react";
 import { supabase } from "../../lib/supabase";
+import AgregarConsultaButton from "../components/AgregarConsultaButton";
 
 type CategoriaRow = {
   id: number;
@@ -716,50 +717,63 @@ function ProductosCatalogoInner() {
                   const marcaNombre =
                     p.marcas?.nombre ?? marcaNombreById.get(p.marca_id ?? 0);
                   return (
-                    <Link
+                    <article
                       key={p.id}
-                      href={`/productos/${p.id}`}
                       className="group relative flex flex-col overflow-hidden border-b-2 border-transparent bg-white shadow-none transition duration-200 hover:border-amber-500 hover:shadow-sm"
                     >
-                      <div className="relative aspect-square w-full overflow-hidden bg-gray-50">
-                        {p.imagen_url ? (
-                          <img
-                            src={p.imagen_url}
-                            alt=""
-                            className="h-full w-full object-contain transition duration-300 ease-out group-hover:scale-[1.01]"
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center px-2 text-center text-xs font-normal text-gray-500">
-                            Sin imagen
-                          </div>
-                        )}
-                        {!p.disponible && (
-                          <span className="absolute left-2 top-2 bg-black px-2 py-0.5 text-xs font-medium text-white">
-                            SIN STOCK
-                          </span>
-                        )}
+                      <Link href={`/productos/${p.id}`} className="block">
+                        <div className="relative aspect-square w-full overflow-hidden bg-gray-50">
+                          {p.imagen_url ? (
+                            <img
+                              src={p.imagen_url}
+                              alt=""
+                              className="h-full w-full object-contain transition duration-300 ease-out group-hover:scale-[1.01]"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center px-2 text-center text-xs font-normal text-gray-500">
+                              Sin imagen
+                            </div>
+                          )}
+                          {!p.disponible && (
+                            <span className="absolute left-2 top-2 bg-black px-2 py-0.5 text-xs font-medium text-white">
+                              SIN STOCK
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex flex-1 flex-col px-1 py-3">
+                          {marcaNombre ? (
+                            <p className="text-xs font-normal uppercase tracking-widest text-gray-400">
+                              {marcaNombre}
+                            </p>
+                          ) : (
+                            <p className="text-xs font-normal uppercase tracking-widest text-gray-400">
+                              Sin marca
+                            </p>
+                          )}
+                          <h2 className="mt-1 line-clamp-2 text-sm font-medium leading-snug text-gray-900">
+                            {p.nombre}
+                          </h2>
+                          {p.codigo && (
+                            <p className="mt-1 font-mono text-xs text-gray-400">
+                              {p.codigo}
+                            </p>
+                          )}
+                          {/* El precio no se muestra en la vista pública */}
+                        </div>
+                      </Link>
+                      <div className="px-1 pb-3">
+                        <AgregarConsultaButton
+                          compact
+                          className="w-full"
+                          producto={{
+                            id: p.id,
+                            nombre: p.nombre,
+                            codigo: p.codigo,
+                            imagen_url: p.imagen_url,
+                          }}
+                        />
                       </div>
-                      <div className="flex flex-1 flex-col px-1 py-3">
-                        {marcaNombre ? (
-                          <p className="text-xs font-normal uppercase tracking-widest text-gray-400">
-                            {marcaNombre}
-                          </p>
-                        ) : (
-                          <p className="text-xs font-normal uppercase tracking-widest text-gray-400">
-                            Sin marca
-                          </p>
-                        )}
-                        <h2 className="mt-1 line-clamp-2 text-sm font-medium leading-snug text-gray-900">
-                          {p.nombre}
-                        </h2>
-                        {p.codigo && (
-                          <p className="mt-1 font-mono text-xs text-gray-400">
-                            {p.codigo}
-                          </p>
-                        )}
-                        {/* El precio no se muestra en la vista pública */}
-                      </div>
-                    </Link>
+                    </article>
                   );
                 })}
               </div>

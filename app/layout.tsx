@@ -4,6 +4,8 @@ import "./globals.css";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import WhatsAppButton from "./components/WhatsAppButton";
+import ConsultaCarrito from "./components/ConsultaCarrito";
+import { ConsultaProvider } from "./context/ConsultaContext";
 
 const raleway = Raleway({
   subsets: ["latin"],
@@ -26,10 +28,13 @@ export default function RootLayout({
       <body
         className={`${raleway.variable} font-sans bg-black`}
       >
-        <Navbar />
-        <main className="bg-black">{children}</main>
-        <Footer />
-        <WhatsAppButton />
+        <ConsultaProvider>
+          <Navbar />
+          <main className="bg-black">{children}</main>
+          <Footer />
+          <WhatsAppButton />
+          <ConsultaCarrito />
+        </ConsultaProvider>
       </body>
     </html>
   );
