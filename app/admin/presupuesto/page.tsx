@@ -222,20 +222,32 @@ function PresupuestoContent() {
 
     void (async () => {
       try {
-        let parsed: unknown;
+        let productos: unknown;
         try {
-          parsed = JSON.parse(productosParam);
+          productos = JSON.parse(decodeURIComponent(productosParam));
         } catch {
-          parsed = JSON.parse(decodeURIComponent(productosParam));
+          productos = JSON.parse(productosParam);
         }
-        if (!Array.isArray(parsed) || parsed.length === 0) return;
+        if (!Array.isArray(productos) || productos.length === 0) return;
 
-        const items = parsed as { id: number }[];
-        const ids = [
-          ...new Set(
-            items.map((i) => i.id).filter((id) => Number.isFinite(id)),
-          ),
-        ];
+        const items = productos as {
+          id: number;
+          nombre?: string;
+          codigo?: string | null;
+          cantidad?: number;
+        }[];
+
+        const qtyById = new Map<number, number>();
+        for (const p of items) {
+          if (!Number.isFinite(p.id)) continue;
+          const c =
+            typeof p.cantidad === "number" && p.cantidad > 0
+              ? Math.floor(p.cantidad)
+              : 1;
+          qtyById.set(p.id, (qtyById.get(p.id) ?? 0) + c);
+        }
+
+        const ids = [...new Set(items.map((i) => i.id).filter(Number.isFinite))];
         if (ids.length === 0) return;
 
         const { data, error } = await supabase
@@ -248,15 +260,15 @@ function PresupuestoContent() {
         if (error || !data?.length) return;
 
         const byId = new Map(
-          (data as ProductoBusqueda[]).map((p) => [p.id, p]),
+          (data as ProductoBusqueda[]).map((row) => [row.id, row]),
         );
-        const cantidadDefault = 1;
 
         setLineas((prev) => {
           const merged = [...prev];
-          for (const item of items) {
-            const p = byId.get(item.id);
+          for (const id of ids) {
+            const p = byId.get(id);
             if (!p) continue;
+            const cantidadLinea = qtyById.get(id) ?? 1;
             const unitVenta = calcUnit(p.precio_costo, p.multiplicador_venta);
             const unitInstalador = calcUnit(
               p.precio_costo,
@@ -266,14 +278,14 @@ function PresupuestoContent() {
             if (idx >= 0) {
               merged[idx] = {
                 ...merged[idx],
-                cantidad: merged[idx].cantidad + cantidadDefault,
+                cantidad: merged[idx].cantidad + cantidadLinea,
               };
             } else {
               merged.push({
                 productoId: p.id,
                 nombre: p.nombre,
                 codigo: p.codigo,
-                cantidad: cantidadDefault,
+                cantidad: cantidadLinea,
                 tipoPrecio: "venta",
                 unitVenta,
                 unitInstalador,
