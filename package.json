@@ -9,8 +9,10 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@emailjs/browser": "^4.4.1",
     "@supabase/ssr": "^0.9.0",
     "@supabase/supabase-js": "^2.99.2",
+    "framer-motion": "^12.38.0",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.7",
     "lucide-react": "^0.577.0",
