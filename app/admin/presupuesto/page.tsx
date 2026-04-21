@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
   FormEvent,
+  Suspense,
   useCallback,
   useEffect,
   useMemo,
@@ -154,7 +155,7 @@ async function imagenABase64(url: string): Promise<string | null> {
   }
 }
 
-export default function AdminPresupuestoPage() {
+function PresupuestoContent() {
   const searchParams = useSearchParams();
   const urlParamsLeidos = useRef(false);
 
@@ -1238,5 +1239,19 @@ export default function AdminPresupuestoPage() {
         ) : null}
       </main>
     </div>
+  );
+}
+
+export default function PresupuestoPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-black flex items-center justify-center text-white">
+          Cargando...
+        </div>
+      }
+    >
+      <PresupuestoContent />
+    </Suspense>
   );
 }
