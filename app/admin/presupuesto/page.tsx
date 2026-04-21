@@ -18,6 +18,7 @@ const LOGO_URL =
   "https://thqmpndhlqknwactxcik.supabase.co/storage/v1/object/public/productos/logo.PNG";
 
 const STORAGE_NUMERO_KEY = "nyg-presupuesto-consecutivo";
+const PRESUPUESTO_PREFILL_KEY = "nyg_presupuesto_desde_consulta";
 
 const inputClase =
   "w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder:text-gray-500 outline-none focus:border-amber-500/50";
@@ -200,6 +201,66 @@ export default function AdminPresupuestoPage() {
   useEffect(() => {
     setNumeroPresupuesto(siguienteNumeroPresupuesto());
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const raw = sessionStorage.getItem(PRESUPUESTO_PREFILL_KEY);
+    if (!raw) return;
+    sessionStorage.removeItem(PRESUPUESTO_PREFILL_KEY);
+    void (async () => {
+      try {
+        const items = JSON.parse(raw) as { id: number; cantidad: number }[];
+        if (!Array.isArray(items) || items.length === 0) return;
+        const ids = [...new Set(items.map((i) => i.id))];
+        const { data, error } = await supabase
+          .from("productos")
+          .select(
+            "id, nombre, codigo, precio_costo, multiplicador_venta, multiplicador_instalador, proveedores(nombre)",
+          )
+          .in("id", ids);
+        if (error || !data?.length) return;
+        const qtyById = new Map<number, number>();
+        for (const it of items) {
+          const add = it.cantidad > 0 ? Math.floor(it.cantidad) : 1;
+          qtyById.set(it.id, (qtyById.get(it.id) ?? 0) + add);
+        }
+        const rows = data as ProductoBusqueda[];
+        setLineas((prev) => {
+          const merged = [...prev];
+          for (const p of rows) {
+            const cantidad = Math.max(1, qtyById.get(p.id) ?? 1);
+            const unitVenta = calcUnit(p.precio_costo, p.multiplicador_venta);
+            const unitInstalador = calcUnit(
+              p.precio_costo,
+              p.multiplicador_instalador,
+            );
+            const idx = merged.findIndex((l) => l.productoId === p.id);
+            if (idx >= 0) {
+              merged[idx] = {
+                ...merged[idx],
+                cantidad: merged[idx].cantidad + cantidad,
+              };
+            } else {
+              merged.push({
+                productoId: p.id,
+                nombre: p.nombre,
+                codigo: p.codigo,
+                cantidad,
+                tipoPrecio: "venta",
+                unitVenta,
+                unitInstalador,
+                precioUnitarioOverride: null,
+              });
+            }
+          }
+          return merged;
+        });
+        setMensajeExito("Productos cargados desde la consulta.");
+      } catch {
+        // Ignorar JSON inválido
+      }
+    })();
+  }, [supabase]);
 
   useEffect(() => {
     void (async () => {

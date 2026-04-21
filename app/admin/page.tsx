@@ -99,6 +99,9 @@ export default function AdminPage() {
   >("todos");
   const [precioMin, setPrecioMin] = useState("");
   const [precioMax, setPrecioMax] = useState("");
+  const [consultasPendientes, setConsultasPendientes] = useState<number | null>(
+    null,
+  );
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -134,6 +137,17 @@ export default function AdminPage() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  useEffect(() => {
+    void (async () => {
+      const { count, error } = await supabase
+        .from("consultas")
+        .select("*", { count: "exact", head: true })
+        .eq("estado", "pendiente");
+      if (error) return;
+      if (count != null) setConsultasPendientes(count);
+    })();
+  }, [supabase]);
 
   const limpiarFiltros = () => {
     setSearch("");
@@ -266,6 +280,17 @@ export default function AdminPage() {
               className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-black transition hover:bg-amber-400"
             >
               Agregar producto
+            </Link>
+            <Link
+              href="/admin/consultas"
+              className="relative rounded-lg border border-gray-700 px-4 py-2 text-sm font-semibold text-white transition hover:border-amber-500 hover:text-amber-400"
+            >
+              Consultas
+              {consultasPendientes != null && consultasPendientes > 0 ? (
+                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-black">
+                  {consultasPendientes > 99 ? "99+" : consultasPendientes}
+                </span>
+              ) : null}
             </Link>
             <Link
               href="/admin/presupuesto"
