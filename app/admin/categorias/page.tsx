@@ -35,6 +35,9 @@ export default function AdminCategoriasPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [nombre, setNombre] = useState("");
   const [parentId, setParentId] = useState<string>("");
+  const [parentCategories, setParentCategories] = useState<
+    Pick<Categoria, "id" | "nombre">[]
+  >([]);
 
   const fetchList = useCallback(async () => {
     setLoading(true);
@@ -57,22 +60,42 @@ export default function AdminCategoriasPage() {
     fetchList();
   }, [fetchList]);
 
-  const parentOptions = useMemo(() => {
-    return rows.filter((c) => editingId == null || c.id !== editingId);
-  }, [rows, editingId]);
+  const fetchParentCategories = useCallback(async () => {
+    const { data, error: err } = await supabase
+      .from("categorias")
+      .select("id, nombre")
+      .is("parent_id", null)
+      .order("nombre", { ascending: true });
 
-  const openCreate = () => {
+    if (err) {
+      alert(err.message);
+      setParentCategories([]);
+      return;
+    }
+
+    setParentCategories((data ?? []) as Pick<Categoria, "id" | "nombre">[]);
+  }, [supabase]);
+
+  const parentOptions = useMemo(() => {
+    return parentCategories.filter((c) => editingId == null || c.id !== editingId);
+  }, [parentCategories, editingId]);
+
+  const openCreate = async () => {
+    await fetchParentCategories();
     setEditingId(null);
     setNombre("");
     setParentId("");
     setFormOpen(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const openEdit = (c: Categoria) => {
+  const openEdit = async (c: Categoria) => {
+    await fetchParentCategories();
     setEditingId(c.id);
     setNombre(c.nombre);
     setParentId(c.parent_id != null ? String(c.parent_id) : "");
     setFormOpen(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const cancelForm = () => {
@@ -213,61 +236,79 @@ export default function AdminCategoriasPage() {
         </div>
 
         {formOpen ? (
-          <form
-            onSubmit={handleSave}
-            className="mt-6 space-y-4 rounded-xl border border-gray-800 bg-zinc-950 p-4"
+          <div
+            className="fixed inset-0 z-50 bg-black/70"
+            onClick={cancelForm}
           >
-            <h2 className="text-lg font-semibold text-white">
-              {editingId == null ? "Nueva categoría" : "Editar categoría"}
-            </h2>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-gray-400">
-                Nombre <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="text"
-                value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
-                className={inputClase}
-                required
-                placeholder="Nombre"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-gray-400">
-                Categoría padre (opcional)
-              </label>
-              <select
-                value={parentId}
-                onChange={(e) => setParentId(e.target.value)}
-                className={selectClase}
-              >
-                <option value="">Ninguna (categoría principal)</option>
-                {parentOptions.map((c) => (
-                  <option key={c.id} value={String(c.id)}>
-                    {c.nombre}
+            <form
+              onSubmit={handleSave}
+              onClick={(e) => e.stopPropagation()}
+              className="fixed left-1/2 top-1/2 w-full max-w-md -translate-x-1/2 -translate-y-1/2 space-y-4 rounded-xl border border-zinc-700 bg-zinc-900 p-6"
+            >
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-white">
+                  {editingId == null ? "Nueva categoría" : "Editar categoría"}
+                </h2>
+                <button
+                  type="button"
+                  onClick={cancelForm}
+                  className="rounded-md px-2 py-1 text-sm font-semibold text-gray-300 transition hover:bg-zinc-800 hover:text-white"
+                  aria-label="Cerrar modal"
+                >
+                  X
+                </button>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-400">
+                  Nombre <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={nombre}
+                  onChange={(e) => setNombre(e.target.value)}
+                  className={inputClase}
+                  required
+                  placeholder="Nombre"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-400">
+                  Categoría padre (opcional)
+                </label>
+                <select
+                  value={parentId}
+                  onChange={(e) => setParentId(e.target.value)}
+                  className={selectClase}
+                >
+                  <option value="">
+                    Sin categoría padre (categoría principal)
                   </option>
-                ))}
-              </select>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="submit"
-                disabled={saving}
-                className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-black transition hover:bg-amber-400 disabled:opacity-60"
-              >
-                Guardar
-              </button>
-              <button
-                type="button"
-                disabled={saving}
-                onClick={cancelForm}
-                className="rounded-lg border border-gray-700 px-4 py-2 text-sm font-semibold text-white transition hover:border-amber-500 hover:text-amber-400 disabled:opacity-60"
-              >
-                Cancelar
-              </button>
-            </div>
-          </form>
+                  {parentOptions.map((c) => (
+                    <option key={c.id} value={String(c.id)}>
+                      {c.nombre}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-black transition hover:bg-amber-400 disabled:opacity-60"
+                >
+                  Guardar
+                </button>
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={cancelForm}
+                  className="rounded-lg border border-gray-700 px-4 py-2 text-sm font-semibold text-white transition hover:border-amber-500 hover:text-amber-400 disabled:opacity-60"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
         ) : null}
       </main>
     </div>
