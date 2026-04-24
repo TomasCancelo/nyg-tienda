@@ -14,9 +14,19 @@ const raleway = Raleway({
 });
 
 export const metadata: Metadata = {
-  title: "N&G Materiales Eléctricos - Maldonado, Uruguay",
+  title: "N&G Materiales Eléctricos | Iluminación y Electricidad - Maldonado",
   description:
-    "Venta de materiales eléctricos e iluminación en Maldonado, Uruguay. Amplio stock, precios mayoristas. Consultanos por WhatsApp.",
+    "Lámparas, cables, arañas, reflectores LED, artefactos solares y más. Tu tienda de materiales eléctricos e iluminación en Maldonado, Uruguay. Stock permanente, precios en pesos uruguayos y envíos a todo el país.",
+  keywords:
+    "materiales eléctricos Maldonado, electricidad Maldonado, iluminación Uruguay, luminarias LED, cables eléctricos, reflectores solar, N&G",
+  openGraph: {
+    title: "N&G Materiales Eléctricos - Maldonado, Uruguay",
+    description:
+      "Lámparas, cables, arañas, reflectores LED y más. Envíos a todo Uruguay.",
+    url: "https://nygmaterialeselectricos.com.uy",
+    locale: "es_UY",
+    type: "website",
+  },
   verification: {
     google: "Fhc0GCHVWDUZKP8BPRrjWJpzOjsvVhNpwka5hoJOBzQ",
   },
