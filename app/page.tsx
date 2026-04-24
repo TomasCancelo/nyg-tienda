@@ -127,6 +127,35 @@ export default async function Home() {
           </div>
         </section>
 
+        <section className="mx-auto w-full max-w-6xl px-4 md:px-6">
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 sm:p-8">
+            <h2 className="text-2xl font-semibold tracking-tight text-zinc-50 sm:text-3xl">
+              Tu tienda de materiales eléctricos en Maldonado
+            </h2>
+            <p className="mt-4 max-w-4xl text-sm leading-relaxed text-zinc-300 sm:text-base">
+              En N&G contamos con amplio stock de lámparas, cables, arañas, reflectores LED, artefactos solares y todo lo que necesitás en electricidad e iluminación. Precios en pesos uruguayos y envíos a todo Uruguay.
+            </p>
+
+            <h2 className="mt-8 text-2xl font-semibold tracking-tight text-zinc-50 sm:text-3xl">
+              ¿Por qué elegirnos?
+            </h2>
+            <ul className="mt-4 space-y-3 text-sm text-zinc-200 sm:text-base">
+              <li className="flex items-start gap-3">
+                <span className="mt-2 h-2 w-2 rounded-full bg-[#F97316]" />
+                <span>Stock permanente y variedad de productos</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="mt-2 h-2 w-2 rounded-full bg-[#F97316]" />
+                <span>Precios en pesos uruguayos</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="mt-2 h-2 w-2 rounded-full bg-[#F97316]" />
+                <span>Envíos a todo Uruguay</span>
+              </li>
+            </ul>
+          </div>
+        </section>
+
       </main>
     </div>
   );
