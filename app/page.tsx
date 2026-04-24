@@ -67,7 +67,7 @@ export default async function Home() {
               <span className="text-[#F97316]">materiales electricos</span>
             </h1>
             <p className="max-w-xl text-balance text-sm text-zinc-300 sm:text-base">
-              Lamparas, cables, aranas, artefactos y mas. Enviamos a todo Uruguay.
+              Lamparas, cables, aranas, artefactos y mas. Tu tienda de Materiales eléctricos en Maldonado, Uruguay.
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <a href="/productos" className="rounded-full bg-[#F97316] px-5 py-2.5 text-sm font-semibold text-black shadow-lg shadow-orange-500/20 transition hover:bg-orange-400">
