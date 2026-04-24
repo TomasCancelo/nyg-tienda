@@ -37,11 +37,36 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const localBusinessJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    name: "N&G Materiales Eléctricos",
+    description:
+      "Tienda de materiales eléctricos, lámparas, cables y luminarias en Maldonado, Uruguay",
+    url: "https://nygmaterialeselectricos.com.uy",
+    telephone: "42260541",
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "Av. Aparicio Saravia CASI",
+      addressLocality: "Maldonado",
+      addressRegion: "Maldonado",
+      addressCountry: "UY",
+      postalCode: "20000",
+    },
+    priceRange: "$$",
+    openingHours: "Mo-Fr 08:00-12:30, Mo-Fr 14:00-18:00",
+    sameAs: "https://www.instagram.com/nyg_iluminacionmaldonado",
+  };
+
   return (
     <html lang="es">
       <body
         className={`${raleway.variable} font-sans bg-black`}
       >
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessJsonLd) }}
+        />
         <ConsultaProvider>
           <Navbar />
           <main className="bg-black">{children}</main>
