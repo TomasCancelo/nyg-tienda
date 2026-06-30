@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Raleway } from "next/font/google";
+import { Raleway, Bebas_Neue } from "next/font/google";
 import "./globals.css";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -11,6 +11,12 @@ const raleway = Raleway({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
   variable: "--font-raleway",
+});
+
+const bebasNeue = Bebas_Neue({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-bebas-neue",
 });
 
 export const metadata: Metadata = {
@@ -61,7 +67,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body
-        className={`${raleway.variable} font-sans bg-black`}
+        className={`${raleway.variable} ${bebasNeue.variable} font-sans bg-black`}
       >
         <script
           type="application/ld+json"

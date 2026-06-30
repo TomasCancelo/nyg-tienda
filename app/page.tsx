@@ -1,5 +1,6 @@
 import { supabase } from "../lib/supabase";
 import DestacadosCarousel from "./components/DestacadosCarousel";
+import BannerClasica from "./components/BannerClasica";
 import Link from "next/link";
 import { Cable, Lightbulb, Sun, Zap, type LucideIcon } from "lucide-react";
 
@@ -97,6 +98,9 @@ export default async function Home() {
           </div>
           <DestacadosCarousel productos={productosDestacados} />
         </section>
+
+        {/* Banner Clásica × Molveno */}
+        <BannerClasica />
 
         {/* Categorias */}
         <section className="mx-auto w-full max-w-6xl px-4 md:px-6">
