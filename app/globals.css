@@ -131,3 +131,90 @@ body {
   opacity: 1;
   transform: scale(1);
 }
+
+/* ── Plaquetas Atenea: pared clara con luz cenital ── */
+.pared-atenea {
+  background:
+    radial-gradient(120% 70% at 50% -10%, #f8f6f2 0%, rgba(248, 246, 242, 0) 60%),
+    linear-gradient(180deg, #ebe7e0 0%, #e2ddd5 100%);
+}
+.pared-atenea ::selection {
+  background: #f97316;
+  color: #0a0a0a;
+}
+
+.plaqueta-atenea {
+  transition: opacity 400ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 400ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.plaqueta-atenea__pieza {
+  --rx: 0deg;
+  --ry: 0deg;
+  --lift: 0px;
+  --scale: 1;
+  transform: perspective(700px) translateY(var(--lift)) scale(var(--scale))
+    rotateX(var(--rx)) rotateY(var(--ry));
+  transition: transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+
+/* Sombra apoyada en la pared: corta y nítida en reposo */
+.plaqueta-atenea__img {
+  filter: drop-shadow(0 1px 1px rgba(40, 30, 20, 0.22))
+    drop-shadow(0 4px 8px rgba(40, 30, 20, 0.1));
+  transition: filter 500ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.plaqueta-atenea__brillo {
+  mask-size: 100% 100%;
+  -webkit-mask-size: 100% 100%;
+  background: linear-gradient(
+    105deg,
+    transparent 38%,
+    rgba(255, 255, 255, 0.5) 50%,
+    transparent 62%
+  );
+  background-size: 260% 100%;
+  background-position: 120% 0;
+  opacity: 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .plaquetas-atenea-fila:hover .plaqueta-atenea:not(:hover) {
+    opacity: 0.5;
+    filter: saturate(0.6);
+  }
+
+  .plaqueta-atenea:hover .plaqueta-atenea__pieza {
+    --lift: -14px;
+    --scale: 1.07;
+    /* más rápida para seguir al mouse */
+    transition: transform 280ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Al despegarse de la pared, la sombra crece, se aleja y se ablanda */
+  .plaqueta-atenea:hover .plaqueta-atenea__img {
+    filter: drop-shadow(0 6px 6px rgba(40, 30, 20, 0.16))
+      drop-shadow(0 26px 30px rgba(40, 30, 20, 0.24));
+  }
+
+  .plaqueta-atenea:hover .plaqueta-atenea__brillo {
+    opacity: 1;
+    background-position: -20% 0;
+    transition: background-position 1100ms cubic-bezier(0.16, 1, 0.3, 1),
+      opacity 200ms ease-out;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plaqueta-atenea__pieza,
+  .plaqueta-atenea__brillo {
+    transition: none !important;
+  }
+  .plaqueta-atenea:hover .plaqueta-atenea__pieza {
+    --rx: 0deg !important;
+    --ry: 0deg !important;
+    --scale: 1;
+  }
+}

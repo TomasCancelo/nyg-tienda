@@ -1,6 +1,6 @@
 import { supabase } from "../lib/supabase";
 import DestacadosCarousel from "./components/DestacadosCarousel";
-import BannerClasica from "./components/BannerClasica";
+import PlaquetasAtenea from "./components/PlaquetasAtenea";
 import Link from "next/link";
 import { Cable, Lightbulb, Sun, Zap, type LucideIcon } from "lucide-react";
 
@@ -99,8 +99,8 @@ export default async function Home() {
           <DestacadosCarousel productos={productosDestacados} />
         </section>
 
-        {/* Banner Clásica × Molveno */}
-        <BannerClasica />
+        {/* Plaquetas Atenea - Molveno */}
+        <PlaquetasAtenea />
 
         {/* Categorias */}
         <section className="mx-auto w-full max-w-6xl px-4 md:px-6">
