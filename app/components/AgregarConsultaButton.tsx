@@ -42,8 +42,16 @@ export default function AgregarConsultaButton({
       onClick={() => agregarProducto(producto)}
       className={`inline-flex items-center justify-center gap-2 rounded-lg border border-amber-500/60 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-500 transition hover:bg-amber-500/20 ${className}`}
     >
-      {compact ? <Plus className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
-      Agregar a consulta
+      {compact ? <Plus className="h-4 w-4 shrink-0" /> : <ShoppingCart className="h-4 w-4" />}
+      {compact ? (
+        // En tarjetas angostas (celular) el texto largo no entra en una línea
+        <>
+          <span className="whitespace-nowrap sm:hidden">Consultar</span>
+          <span className="hidden whitespace-nowrap sm:inline">Agregar a consulta</span>
+        </>
+      ) : (
+        "Agregar a consulta"
+      )}
     </button>
   );
 }

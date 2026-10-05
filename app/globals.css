@@ -218,3 +218,54 @@ body {
     --scale: 1;
   }
 }
+
+/* ── Catálogo: tarjetas de producto ── */
+.catalogo-card {
+  --i: 0;
+  /* "backwards": al terminar suelta el transform, así funciona el hover */
+  animation: catalogo-entrada 600ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation-delay: calc(var(--i) * 40ms);
+  transition: transform 350ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 250ms ease-out, box-shadow 350ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes catalogo-entrada {
+  from {
+    opacity: 0.15;
+    transform: translateY(16px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.catalogo-card__img {
+  transition: transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .catalogo-card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(249, 115, 22, 0.55);
+    box-shadow: 0 22px 40px -22px rgba(249, 115, 22, 0.45),
+      0 10px 20px -12px rgba(0, 0, 0, 0.7);
+  }
+  .catalogo-card:hover .catalogo-card__img {
+    transform: scale(1.07);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .catalogo-card {
+    animation: none;
+  }
+  .catalogo-card,
+  .catalogo-card__img {
+    transition: border-color 200ms ease-out;
+  }
+  .catalogo-card:hover,
+  .catalogo-card:hover .catalogo-card__img {
+    transform: none;
+  }
+}

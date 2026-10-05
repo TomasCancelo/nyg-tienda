@@ -6,17 +6,19 @@ import {
   Suspense,
   useCallback,
   useEffect,
-  useId,
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type ReactNode,
 } from "react";
 import {
+  ArrowUpDown,
+  Check,
   ChevronDown,
-  ChevronRight,
-  Filter,
+  Plug,
   Search,
+  SlidersHorizontal,
   X,
 } from "lucide-react";
 import { supabase } from "../../lib/supabase";
@@ -37,14 +39,26 @@ type ProductoRow = {
   id: number;
   nombre: string;
   codigo: string | null;
-  precio_costo: number | null;
-  multiplicador_venta: number | null;
   imagen_url: string | null;
   disponible: boolean;
+  destacado: boolean | null;
   categoria_id: number | null;
   marca_id: number | null;
-  marcas: { nombre: string } | null;
 };
+
+type Orden = "relevancia" | "az" | "za";
+
+const ORDENES: { id: Orden; nombre: string }[] = [
+  { id: "relevancia", nombre: "Destacados" },
+  { id: "az", nombre: "Nombre A-Z" },
+  { id: "za", nombre: "Nombre Z-A" },
+];
+
+// Cuántos productos se muestran de entrada y cuántos suma "Ver más"
+const POR_PAGINA = 24;
+
+// La marca "Generica" no le dice nada al cliente; no la mostramos en las tarjetas
+const MARCAS_OCULTAS = new Set(["generica", "genérica"]);
 
 function parseCommaIds(raw: string | null): number[] {
   if (!raw?.trim()) return [];
@@ -85,39 +99,33 @@ function collectSubtreeIds(
   return out;
 }
 
-function resolveCategoryFilterIds(
-  selected: number[],
-  allCats: CategoriaRow[],
-): number[] {
-  if (!selected.length || !allCats.length) return selected;
-  const childrenByParent = buildChildrenByParent(allCats);
-  const resolved = new Set<number>();
-  for (const id of selected) {
-    for (const x of collectSubtreeIds(id, childrenByParent)) {
-      resolved.add(x);
-    }
-  }
-  return [...resolved];
+/** Minúsculas y sin tildes, para que "lampara" encuentre "Lámpara". */
+function normalizar(texto: string): string {
+  return texto
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase();
 }
 
 function FilterCheckbox({
   checked,
   onChange,
-  id,
+  count,
   children,
 }: {
   checked: boolean;
   onChange: (checked: boolean) => void;
-  id?: string;
+  count?: number;
   children: ReactNode;
 }) {
+  const vacio = count === 0 && !checked;
   return (
     <label
-      htmlFor={id}
-      className="flex cursor-pointer items-center gap-3 py-1.5 text-sm text-gray-700"
+      className={`group/check flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 text-sm transition hover:bg-white/5 ${
+        vacio ? "text-zinc-600" : "text-zinc-300"
+      }`}
     >
       <input
-        id={id}
         type="checkbox"
         className="peer sr-only"
         checked={checked}
@@ -125,49 +133,137 @@ function FilterCheckbox({
       />
       <span
         aria-hidden
-        className="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full border border-gray-300 transition peer-checked:border-amber-500 peer-checked:bg-amber-500 peer-checked:[&>span]:opacity-100"
+        className="flex h-4 w-4 shrink-0 items-center justify-center rounded border border-white/20 transition group-hover/check:border-orange-400/60 peer-checked:border-[#F97316] peer-checked:bg-[#F97316] peer-focus-visible:ring-2 peer-focus-visible:ring-[#F97316] peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-[#0a0a0a] [&>svg]:opacity-0 peer-checked:[&>svg]:opacity-100"
       >
-        <span className="h-1.5 w-1.5 rounded-full bg-white opacity-0 transition" />
+        <Check className="h-3 w-3 text-black" strokeWidth={3} />
       </span>
-      <span>{children}</span>
+      <span className="min-w-0 flex-1 leading-tight peer-checked:text-white">
+        {children}
+      </span>
+      {count != null && (
+        <span className="text-xs tabular-nums text-zinc-500">{count}</span>
+      )}
     </label>
+  );
+}
+
+function FiltroSeccion({
+  titulo,
+  children,
+}: {
+  titulo: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="border-t border-white/10 pt-5">
+      <h3 className="mb-3 px-2 text-sm font-semibold text-zinc-100">
+        {titulo}
+      </h3>
+      {children}
+    </section>
   );
 }
 
 function ProductCardSkeleton() {
   return (
-    <div className="flex flex-col overflow-hidden bg-white">
-      <div className="aspect-square w-full animate-pulse bg-gray-100" />
-      <div className="flex flex-1 flex-col gap-2 px-1 py-3">
-        <div className="h-2 w-1/3 animate-pulse rounded bg-gray-200" />
-        <div className="h-3 w-full animate-pulse rounded bg-gray-200" />
-        <div className="h-2 w-1/2 animate-pulse rounded bg-gray-200" />
+    <div className="flex flex-col rounded-2xl border border-white/10 bg-zinc-950 p-2">
+      <div className="aspect-square w-full animate-pulse rounded-xl bg-zinc-900" />
+      <div className="flex flex-col gap-2 px-2 pb-2 pt-3">
+        <div className="h-2.5 w-1/3 animate-pulse rounded bg-zinc-800" />
+        <div className="h-3 w-full animate-pulse rounded bg-zinc-800" />
+        <div className="h-3 w-2/3 animate-pulse rounded bg-zinc-800" />
+        <div className="mt-2 h-8 w-full animate-pulse rounded-lg bg-zinc-900" />
       </div>
+    </div>
+  );
+}
+
+function GrillaSkeleton() {
+  return (
+    <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <ProductCardSkeleton key={i} />
+      ))}
     </div>
   );
 }
 
 function PageFallback() {
   return (
-    <div className="min-h-screen bg-[#fafafa] text-gray-900">
-      <div className="mx-auto flex max-w-[1600px] gap-6 px-4 py-8 lg:px-6">
-        <aside className="hidden w-64 shrink-0 lg:block">
-          <div className="space-y-6">
-            <div className="h-3 w-16 animate-pulse rounded bg-gray-200" />
-            <div className="h-9 w-full animate-pulse border-b border-gray-200 bg-transparent" />
-            <div className="h-24 w-full animate-pulse bg-gray-100" />
-          </div>
-        </aside>
-        <div className="min-w-0 flex-1">
-          <div className="mb-8 h-10 w-56 animate-pulse rounded bg-gray-200" />
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4 md:gap-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <ProductCardSkeleton key={i} />
-            ))}
-          </div>
-        </div>
+    <div className="min-h-screen bg-[#0a0a0a] text-zinc-50">
+      <div className="mx-auto max-w-[1400px] px-4 py-8 lg:px-6">
+        <div className="mb-8 h-10 w-56 animate-pulse rounded bg-zinc-800" />
+        <GrillaSkeleton />
       </div>
     </div>
+  );
+}
+
+function ProductCard({
+  producto,
+  marca,
+  orden,
+}: {
+  producto: ProductoRow;
+  marca: string | null;
+  orden: number;
+}) {
+  return (
+    <article
+      className="catalogo-card group relative flex flex-col rounded-2xl border border-white/10 bg-zinc-950 p-2"
+      style={{ "--i": orden } as CSSProperties}
+    >
+      <Link
+        href={`/productos/${producto.id}`}
+        className="flex flex-1 flex-col rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F97316]"
+      >
+        <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-white">
+          {producto.imagen_url ? (
+            <img
+              src={producto.imagen_url}
+              alt={producto.nombre}
+              loading="lazy"
+              className="catalogo-card__img h-full w-full object-contain p-3"
+            />
+          ) : (
+            <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-zinc-100 text-zinc-400">
+              <Plug className="h-8 w-8" strokeWidth={1.25} aria-hidden />
+              <span className="text-xs">Foto próximamente</span>
+            </div>
+          )}
+          {!producto.disponible && (
+            <span className="absolute left-2 top-2 rounded-full bg-zinc-950 px-2.5 py-1 text-[11px] font-semibold text-white">
+              Sin stock
+            </span>
+          )}
+        </div>
+        <div className="flex flex-1 flex-col px-2 pt-3">
+          {marca && (
+            <p className="text-xs font-medium text-orange-300">{marca}</p>
+          )}
+          <h2 className="mt-0.5 line-clamp-2 text-sm font-medium leading-snug text-zinc-100 transition group-hover:text-white">
+            {producto.nombre}
+          </h2>
+          {producto.codigo && (
+            <p className="mt-1 text-xs tabular-nums text-zinc-500">
+              Cód. {producto.codigo}
+            </p>
+          )}
+        </div>
+      </Link>
+      <div className="px-1 pb-1 pt-3">
+        <AgregarConsultaButton
+          compact
+          className="w-full"
+          producto={{
+            id: producto.id,
+            nombre: producto.nombre,
+            codigo: producto.codigo,
+            imagen_url: producto.imagen_url,
+          }}
+        />
+      </div>
+    </article>
   );
 }
 
@@ -175,10 +271,13 @@ function ProductosCatalogoInner() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const spKey = searchParams.toString();
 
   const qFromUrl = searchParams.get("q") ?? "";
   const soloDisponibles = searchParams.get("disponible") === "1";
+  const orden: Orden =
+    (ORDENES.find((o) => o.id === searchParams.get("orden"))?.id) ??
+    "relevancia";
+  // El menú del sitio manda "categorias"; los filtros de esta página escriben "categoria_id"
   const categoriaParam =
     searchParams.get("categoria_id") ?? searchParams.get("categorias");
   const marcaParam = searchParams.get("marca_id");
@@ -193,7 +292,7 @@ function ProductosCatalogoInner() {
 
   useEffect(() => {
     setSearchDraft(qFromUrl);
-  }, [qFromUrl, spKey]);
+  }, [qFromUrl]);
 
   const replaceQuery = useCallback(
     (mutate: (p: URLSearchParams) => void) => {
@@ -215,7 +314,7 @@ function ProductosCatalogoInner() {
           if (v) p.set("q", v);
           else p.delete("q");
         });
-      }, 400);
+      }, 250);
     },
     [replaceQuery],
   );
@@ -229,13 +328,16 @@ function ProductosCatalogoInner() {
   const [expandedParents, setExpandedParents] = useState<Set<number>>(
     () => new Set(),
   );
-  const filterIdDesktop = useId();
-  const filterIdMobile = useId();
+  const [visibles, setVisibles] = useState(POR_PAGINA);
 
+  // Se carga todo el catálogo una sola vez y se filtra en el navegador:
+  // los filtros responden al instante y se pueden mostrar cantidades por filtro.
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const [catRes, marRes] = await Promise.all([
+      setLoading(true);
+      setError(null);
+      const [catRes, marRes, prodRes] = await Promise.all([
         supabase
           .from("categorias")
           .select("id, nombre, parent_id")
@@ -244,18 +346,25 @@ function ProductosCatalogoInner() {
           .from("marcas")
           .select("id, nombre")
           .order("nombre", { ascending: true }),
+        supabase
+          .from("productos")
+          .select(
+            "id, nombre, codigo, imagen_url, disponible, destacado, categoria_id, marca_id",
+          )
+          .order("nombre", { ascending: true }),
       ]);
       if (cancelled) return;
-      if (catRes.error) {
-        console.error(catRes.error.message);
+      if (catRes.error) console.error(catRes.error.message);
+      else setCategorias((catRes.data ?? []) as CategoriaRow[]);
+      if (marRes.error) console.error(marRes.error.message);
+      else setMarcas((marRes.data ?? []) as MarcaRow[]);
+      if (prodRes.error) {
+        setError("No pudimos cargar los productos. Recargá la página para intentar de nuevo.");
+        console.error(prodRes.error.message);
       } else {
-        setCategorias((catRes.data ?? []) as CategoriaRow[]);
+        setProductos((prodRes.data ?? []) as ProductoRow[]);
       }
-      if (marRes.error) {
-        console.error(marRes.error.message);
-      } else {
-        setMarcas((marRes.data ?? []) as MarcaRow[]);
-      }
+      setLoading(false);
     })();
     return () => {
       cancelled = true;
@@ -272,9 +381,9 @@ function ProductosCatalogoInner() {
     [categorias],
   );
 
-  const categoriaNombreById = useMemo(() => {
-    const m = new Map<number, string>();
-    for (const c of categorias) m.set(c.id, c.nombre);
+  const categoriaById = useMemo(() => {
+    const m = new Map<number, CategoriaRow>();
+    for (const c of categorias) m.set(c.id, c);
     return m;
   }, [categorias]);
 
@@ -284,86 +393,175 @@ function ProductosCatalogoInner() {
     return map;
   }, [marcas]);
 
-  const resolvedCategoriaIds = useMemo(
-    () => resolveCategoryFilterIds(categoriaIds, categorias),
-    [categoriaIds, categorias],
+  const marcaVisible = useCallback(
+    (marcaId: number | null) => {
+      if (marcaId == null) return null;
+      const nombre = marcaNombreById.get(marcaId);
+      if (!nombre || MARCAS_OCULTAS.has(normalizar(nombre))) return null;
+      return nombre;
+    },
+    [marcaNombreById],
   );
 
+  const resolvedCategoriaIds = useMemo(() => {
+    const resolved = new Set<number>();
+    for (const id of categoriaIds) {
+      for (const x of collectSubtreeIds(id, childrenByParent)) resolved.add(x);
+    }
+    return resolved;
+  }, [categoriaIds, childrenByParent]);
+
+  // Texto buscable de cada producto (nombre, código y marca, sin tildes)
+  const textoBuscable = useMemo(() => {
+    const m = new Map<number, string>();
+    for (const p of productos) {
+      m.set(
+        p.id,
+        normalizar(
+          `${p.nombre} ${p.codigo ?? ""} ${marcaNombreById.get(p.marca_id ?? -1) ?? ""}`,
+        ),
+      );
+    }
+    return m;
+  }, [productos, marcaNombreById]);
+
+  const palabras = useMemo(
+    () => normalizar(qFromUrl).split(/\s+/).filter(Boolean),
+    [qFromUrl],
+  );
+
+  const pasaBusqueda = useCallback(
+    (p: ProductoRow) => {
+      if (!palabras.length) return true;
+      const t = textoBuscable.get(p.id) ?? "";
+      return palabras.every((w) => t.includes(w));
+    },
+    [palabras, textoBuscable],
+  );
+  const pasaDisponible = useCallback(
+    (p: ProductoRow) => !soloDisponibles || p.disponible,
+    [soloDisponibles],
+  );
+  const pasaCategoria = useCallback(
+    (p: ProductoRow) =>
+      resolvedCategoriaIds.size === 0 ||
+      (p.categoria_id != null && resolvedCategoriaIds.has(p.categoria_id)),
+    [resolvedCategoriaIds],
+  );
+  const pasaMarca = useCallback(
+    (p: ProductoRow) =>
+      marcaIds.length === 0 ||
+      (p.marca_id != null && marcaIds.includes(p.marca_id)),
+    [marcaIds],
+  );
+
+  const filtrados = useMemo(() => {
+    const out = productos.filter(
+      (p) =>
+        pasaBusqueda(p) && pasaDisponible(p) && pasaCategoria(p) && pasaMarca(p),
+    );
+    const porNombre = (a: ProductoRow, b: ProductoRow) =>
+      a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
+    if (orden === "az") out.sort(porNombre);
+    else if (orden === "za") out.sort((a, b) => porNombre(b, a));
+    else {
+      // Destacados, después los que tienen foto, después el resto
+      const peso = (p: ProductoRow) =>
+        (p.destacado ? 0 : 2) + (p.imagen_url ? 0 : 1);
+      out.sort((a, b) => peso(a) - peso(b) || porNombre(a, b));
+    }
+    return out;
+  }, [productos, pasaBusqueda, pasaDisponible, pasaCategoria, pasaMarca, orden]);
+
+  // Cantidades de cada filtro, teniendo en cuenta los demás filtros activos
+  const conteoCategoria = useMemo(() => {
+    const porCategoria = new Map<number, number>();
+    for (const p of productos) {
+      if (p.categoria_id == null) continue;
+      if (!pasaBusqueda(p) || !pasaDisponible(p) || !pasaMarca(p)) continue;
+      porCategoria.set(p.categoria_id, (porCategoria.get(p.categoria_id) ?? 0) + 1);
+    }
+    const total = (id: number) =>
+      collectSubtreeIds(id, childrenByParent).reduce(
+        (n, x) => n + (porCategoria.get(x) ?? 0),
+        0,
+      );
+    const m = new Map<number, number>();
+    for (const c of categorias) m.set(c.id, total(c.id));
+    return m;
+  }, [productos, categorias, childrenByParent, pasaBusqueda, pasaDisponible, pasaMarca]);
+
+  const conteoMarca = useMemo(() => {
+    const m = new Map<number, number>();
+    for (const p of productos) {
+      if (p.marca_id == null) continue;
+      if (!pasaBusqueda(p) || !pasaDisponible(p) || !pasaCategoria(p)) continue;
+      m.set(p.marca_id, (m.get(p.marca_id) ?? 0) + 1);
+    }
+    return m;
+  }, [productos, pasaBusqueda, pasaDisponible, pasaCategoria]);
+
+  // Categorías y marcas que tienen al menos un producto cargado (las vacías no se listan)
+  const conProductos = useMemo(() => {
+    const cats = new Set<number>();
+    const mars = new Set<number>();
+    const porCategoria = new Set(productos.map((p) => p.categoria_id));
+    for (const c of categorias) {
+      if (collectSubtreeIds(c.id, childrenByParent).some((x) => porCategoria.has(x)))
+        cats.add(c.id);
+    }
+    for (const p of productos) if (p.marca_id != null) mars.add(p.marca_id);
+    return { cats, mars };
+  }, [productos, categorias, childrenByParent]);
+
+  const hayNoDisponibles = useMemo(
+    () => productos.some((p) => !p.disponible),
+    [productos],
+  );
+
+  // Al cambiar cualquier filtro se vuelve a la primera tanda
+  const firmaFiltros = `${qFromUrl}|${soloDisponibles}|${formatIds(categoriaIds)}|${formatIds(marcaIds)}|${orden}`;
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        let query = supabase
-          .from("productos")
-          .select(
-            "id, nombre, codigo, precio_costo, multiplicador_venta, imagen_url, disponible, categoria_id, marca_id, marcas ( nombre )",
-          )
-          .order("nombre", { ascending: true });
+    setVisibles(POR_PAGINA);
+  }, [firmaFiltros]);
 
-        const qTrim = qFromUrl.trim();
-        if (qTrim) {
-          query = query.ilike("nombre", `%${qTrim}%`);
-        }
-        if (soloDisponibles) {
-          query = query.eq("disponible", true);
-        }
-        if (resolvedCategoriaIds.length > 0) {
-          query = query.in("categoria_id", resolvedCategoriaIds);
-        }
-        if (marcaIds.length > 0) {
-          query = query.in("marca_id", marcaIds);
-        }
-
-        const { data, error: fetchError } = await query;
-
-        if (cancelled) return;
-        if (fetchError) {
-          setError(fetchError.message);
-          setProductos([]);
-        } else {
-          const rows = (data ?? []) as unknown as ProductoRow[];
-          setProductos(rows);
-        }
-      } catch (e) {
-        if (!cancelled) {
-          setError(e instanceof Error ? e.message : "Error al cargar");
-          setProductos([]);
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
+  // Abre la categoría padre de lo que viene seleccionado desde el menú
+  useEffect(() => {
+    if (!categorias.length || !categoriaIds.length) return;
+    setExpandedParents((prev) => {
+      const n = new Set(prev);
+      for (const id of categoriaIds) {
+        const parent = categoriaById.get(id)?.parent_id;
+        n.add(parent ?? id);
       }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [
-    qFromUrl,
-    soloDisponibles,
-    formatIds(resolvedCategoriaIds),
-    formatIds(marcaIds),
-    spKey,
-  ]);
+      return n;
+    });
+  }, [categorias.length, categoriaIds, categoriaById]);
 
-  const activeFilterCount = useMemo(() => {
-    let n = 0;
-    if (qFromUrl.trim()) n += 1;
-    if (soloDisponibles) n += 1;
-    n += categoriaIds.length;
-    n += marcaIds.length;
-    return n;
-  }, [qFromUrl, soloDisponibles, categoriaIds.length, marcaIds.length]);
+  const activeFilterCount =
+    (qFromUrl.trim() ? 1 : 0) +
+    (soloDisponibles ? 1 : 0) +
+    categoriaIds.length +
+    marcaIds.length;
 
-  const toggleCategoria = (id: number, checked: boolean) => {
-    const next = new Set(categoriaIds);
-    if (checked) next.add(id);
-    else next.delete(id);
-    const arr = [...next];
+  const setCategorias_ = (ids: number[]) => {
     replaceQuery((p) => {
-      if (arr.length) p.set("categoria_id", formatIds(arr));
+      p.delete("categorias");
+      if (ids.length) p.set("categoria_id", formatIds(ids));
       else p.delete("categoria_id");
     });
+  };
+
+  const toggleCategoria = (id: number, checked: boolean) => {
+    const cat = categoriaById.get(id);
+    let next = categoriaIds.filter((x) => x !== id);
+    if (checked) {
+      // Elegir un padre reemplaza a sus hijos, y elegir un hijo reemplaza al padre
+      const hijos = childrenByParent.get(id) ?? [];
+      next = next.filter((x) => !hijos.includes(x) && x !== cat?.parent_id);
+      next.push(id);
+    }
+    setCategorias_(next);
   };
 
   const toggleMarca = (id: number, checked: boolean) => {
@@ -384,35 +582,26 @@ function ProductosCatalogoInner() {
     });
   };
 
+  const setOrden = (o: Orden) => {
+    replaceQuery((p) => {
+      if (o === "relevancia") p.delete("orden");
+      else p.set("orden", o);
+    });
+  };
+
   const clearAllFilters = () => {
     if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
     setSearchDraft("");
-    router.replace(pathname, { scroll: false });
+    replaceQuery((p) => {
+      for (const k of ["q", "disponible", "categoria_id", "categorias", "marca_id"])
+        p.delete(k);
+    });
   };
 
   const removeChipSearch = () => {
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
     setSearchDraft("");
     replaceQuery((p) => p.delete("q"));
-  };
-
-  const removeChipDisponible = () => {
-    replaceQuery((p) => p.delete("disponible"));
-  };
-
-  const removeChipCategoria = (id: number) => {
-    const next = categoriaIds.filter((x) => x !== id);
-    replaceQuery((p) => {
-      if (next.length) p.set("categoria_id", formatIds(next));
-      else p.delete("categoria_id");
-    });
-  };
-
-  const removeChipMarca = (id: number) => {
-    const next = marcaIds.filter((x) => x !== id);
-    replaceQuery((p) => {
-      if (next.length) p.set("marca_id", formatIds(next));
-      else p.delete("marca_id");
-    });
   };
 
   const toggleParentExpanded = (id: number) => {
@@ -424,363 +613,400 @@ function ProductosCatalogoInner() {
     });
   };
 
-  const renderFilterSidebar = (idPrefix: string) => (
-    <div className="flex h-full flex-col gap-6 overflow-y-auto">
-      <div>
-        <label
-          htmlFor={`${idPrefix}-q`}
-          className="mb-2 block text-xs font-light uppercase tracking-widest text-gray-400"
-        >
-          Buscar
-        </label>
-        <div className="relative flex items-center border-b border-gray-300 py-2">
-          <input
-            id={`${idPrefix}-q`}
-            type="search"
-            value={searchDraft}
-            onChange={(e) => setSearchDebounced(e.target.value)}
-            placeholder="Nombre del producto..."
-            className="w-full border-0 bg-transparent pr-8 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:ring-0"
-          />
-          <Search
-            className="pointer-events-none absolute right-0 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
-            aria-hidden
-          />
-        </div>
-      </div>
+  // Cerrar el panel de filtros del celular con Escape y bloquear el scroll de fondo
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setDrawerOpen(false);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [drawerOpen]);
 
-      <FilterCheckbox
-        id={`${idPrefix}-solo`}
-        checked={soloDisponibles}
-        onChange={toggleDisponibles}
-      >
-        Solo disponibles
-      </FilterCheckbox>
+  const marcasListadas = marcas.filter(
+    (m) => conProductos.mars.has(m.id) || marcaIds.includes(m.id),
+  );
 
-      <div className="border-b border-gray-200 pb-1 mb-3">
-        <h3 className="mb-3 text-xs font-light uppercase tracking-widest text-gray-400">
-          Categorías
-        </h3>
-        <ul className="space-y-0">
-          {padres.map((padre) => {
-            const hijos = childrenByParent.get(padre.id) ?? [];
-            const hijoRows = hijos
-              .map((hid) => categorias.find((c) => c.id === hid))
-              .filter(Boolean) as CategoriaRow[];
-            const expanded = expandedParents.has(padre.id);
-            const tieneHijos = hijoRows.length > 0;
-            return (
-              <li key={padre.id}>
-                {tieneHijos ? (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => toggleParentExpanded(padre.id)}
-                      className="flex w-full cursor-pointer items-center justify-between gap-2 py-2.5 text-left text-xs font-normal uppercase tracking-widest text-gray-700 transition hover:text-gray-900"
-                      aria-expanded={expanded}
+  const renderFiltros = () => (
+    <div className="flex flex-col gap-5">
+      <FiltroSeccion titulo="Categorías">
+        <ul className="flex flex-col gap-0.5">
+          {padres
+            .filter((p) => conProductos.cats.has(p.id) || categoriaIds.includes(p.id))
+            .map((padre) => {
+              const hijos = (childrenByParent.get(padre.id) ?? [])
+                .map((hid) => categoriaById.get(hid))
+                .filter(
+                  (c): c is CategoriaRow =>
+                    !!c && (conProductos.cats.has(c.id) || categoriaIds.includes(c.id)),
+                );
+              const expanded = expandedParents.has(padre.id);
+              const algunHijoActivo = hijos.some((h) => categoriaIds.includes(h.id));
+              return (
+                <li key={padre.id}>
+                  <div className="flex items-center">
+                    <div className="min-w-0 flex-1">
+                      <FilterCheckbox
+                        checked={categoriaIds.includes(padre.id)}
+                        onChange={(c) => toggleCategoria(padre.id, c)}
+                        count={conteoCategoria.get(padre.id)}
+                      >
+                        <span className={algunHijoActivo ? "text-white" : undefined}>
+                          {padre.nombre}
+                        </span>
+                      </FilterCheckbox>
+                    </div>
+                    {hijos.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => toggleParentExpanded(padre.id)}
+                        aria-expanded={expanded}
+                        aria-label={`${expanded ? "Ocultar" : "Ver"} subcategorías de ${padre.nombre}`}
+                        className="ml-1 rounded-lg p-1.5 text-zinc-500 transition hover:bg-white/5 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F97316]"
+                      >
+                        <ChevronDown
+                          className={`h-4 w-4 transition-transform duration-300 ${expanded ? "rotate-180" : ""}`}
+                        />
+                      </button>
+                    )}
+                  </div>
+                  {hijos.length > 0 && (
+                    <div
+                      className={`grid transition-[grid-template-rows] duration-300 ease-out ${
+                        expanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+                      }`}
                     >
-                      <span className="leading-tight">{padre.nombre}</span>
-                      {expanded ? (
-                        <ChevronDown className="h-4 w-4 shrink-0 text-gray-400" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4 shrink-0 text-gray-400" />
-                      )}
-                    </button>
-                    {expanded && (
-                      <ul className="ml-2 border-l border-gray-200 pl-3">
-                        {hijoRows.map((h) => (
+                      <ul
+                        className="ml-4 overflow-hidden border-l border-white/10 pl-2"
+                        inert={!expanded}
+                      >
+                        {hijos.map((h) => (
                           <li key={h.id}>
                             <FilterCheckbox
-                              id={`${idPrefix}-cat-${h.id}`}
                               checked={categoriaIds.includes(h.id)}
                               onChange={(c) => toggleCategoria(h.id, c)}
+                              count={conteoCategoria.get(h.id)}
                             >
                               {h.nombre}
                             </FilterCheckbox>
                           </li>
                         ))}
                       </ul>
-                    )}
-                  </>
-                ) : (
-                  <FilterCheckbox
-                    id={`${idPrefix}-cat-${padre.id}`}
-                    checked={categoriaIds.includes(padre.id)}
-                    onChange={(c) => toggleCategoria(padre.id, c)}
-                  >
-                    <span className="leading-tight">{padre.nombre}</span>
-                  </FilterCheckbox>
-                )}
-              </li>
-            );
-          })}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
         </ul>
-      </div>
+      </FiltroSeccion>
 
-      <div className="border-b border-gray-200 pb-1 mb-3">
-        <h3 className="mb-3 text-xs font-light uppercase tracking-widest text-gray-400">
-          Marcas
-        </h3>
-        <ul className="max-h-64 space-y-0 overflow-y-auto pr-1">
-          {marcas.map((m) => (
+      <FiltroSeccion titulo="Marcas">
+        <ul className="flex flex-col gap-0.5">
+          {marcasListadas.map((m) => (
             <li key={m.id}>
               <FilterCheckbox
-                id={`${idPrefix}-marca-${m.id}`}
                 checked={marcaIds.includes(m.id)}
                 onChange={(c) => toggleMarca(m.id, c)}
+                count={conteoMarca.get(m.id) ?? 0}
               >
                 {m.nombre}
               </FilterCheckbox>
             </li>
           ))}
         </ul>
-      </div>
+      </FiltroSeccion>
+
+      {(hayNoDisponibles || soloDisponibles) && (
+        <FiltroSeccion titulo="Stock">
+          <FilterCheckbox checked={soloDisponibles} onChange={toggleDisponibles}>
+            Solo disponibles
+          </FilterCheckbox>
+        </FiltroSeccion>
+      )}
     </div>
   );
 
+  type Chip = { tipo: "q" | "cat" | "marca" | "disp"; id: number; label: string };
+  const chips: Chip[] = [
+    ...(qFromUrl.trim()
+      ? [{ tipo: "q" as const, id: 0, label: `“${qFromUrl.trim()}”` }]
+      : []),
+    ...categoriaIds.map((id) => ({
+      tipo: "cat" as const,
+      id,
+      label: categoriaById.get(id)?.nombre ?? `Categoría ${id}`,
+    })),
+    ...marcaIds.map((id) => ({
+      tipo: "marca" as const,
+      id,
+      label: marcaNombreById.get(id) ?? `Marca ${id}`,
+    })),
+    ...(soloDisponibles
+      ? [{ tipo: "disp" as const, id: 0, label: "Solo disponibles" }]
+      : []),
+  ];
+
+  const quitarChip = (c: Chip) => {
+    if (c.tipo === "q") removeChipSearch();
+    else if (c.tipo === "cat") toggleCategoria(c.id, false);
+    else if (c.tipo === "marca") toggleMarca(c.id, false);
+    else toggleDisponibles(false);
+  };
+
+  const mostrados = filtrados.slice(0, visibles);
+  const restantes = filtrados.length - mostrados.length;
+
   return (
-    <div className="min-h-screen bg-[#fafafa] text-gray-900">
-      {drawerOpen && (
-        <button
-          type="button"
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
-          aria-label="Cerrar filtros"
-          onClick={() => setDrawerOpen(false)}
-        />
-      )}
-
-      <div className="mx-auto flex max-w-[1600px] gap-6 px-4 py-6 lg:px-6">
-        {/* Desktop sidebar */}
-        <aside className="hidden w-64 shrink-0 lg:sticky lg:top-0 lg:block lg:h-[calc(100vh-1.5rem)] lg:self-start lg:overflow-hidden">
-          <div className="flex h-full max-h-[calc(100vh-2rem)] flex-col">
-            <h2 className="mb-6 font-light uppercase tracking-widest text-xs text-gray-400">
-              Filtros
-            </h2>
-            {renderFilterSidebar(filterIdDesktop)}
+    <div className="min-h-screen bg-[#0a0a0a] text-zinc-50">
+      <div className="mx-auto max-w-[1400px] px-4 pb-20 pt-8 lg:px-6 lg:pt-10">
+        {/* Encabezado: título, búsqueda y orden */}
+        <header className="mb-6 flex flex-col gap-5 lg:mb-8">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+                Catálogo
+              </h1>
+              <p className="mt-1 text-sm text-zinc-400" aria-live="polite">
+                {loading
+                  ? "Cargando productos…"
+                  : `${filtrados.length} ${filtrados.length === 1 ? "producto" : "productos"}`}
+              </p>
+            </div>
           </div>
-        </aside>
 
-        {/* Mobile drawer */}
-        <div
-          className={`fixed inset-y-0 left-0 z-50 w-[min(100%,288px)] max-w-full transform border-r border-gray-200 bg-[#fafafa] shadow-xl transition-transform duration-200 ease-out lg:hidden ${
-            drawerOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
-        >
-          <div className="flex h-full flex-col p-4">
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="font-light uppercase tracking-widest text-xs text-gray-400">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="relative flex-1">
+              <Search
+                className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500"
+                aria-hidden
+              />
+              <input
+                type="search"
+                value={searchDraft}
+                onChange={(e) => setSearchDebounced(e.target.value)}
+                placeholder="Buscá por nombre, código o marca"
+                aria-label="Buscar productos"
+                className="h-12 w-full rounded-full border border-white/10 bg-zinc-950 pl-11 pr-4 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-500 hover:border-white/20 focus:border-[#F97316]/70 focus:ring-2 focus:ring-[#F97316]/20 [&::-webkit-search-cancel-button]:hidden"
+              />
+              {searchDraft && (
+                <button
+                  type="button"
+                  onClick={removeChipSearch}
+                  aria-label="Borrar búsqueda"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-2 text-zinc-500 transition hover:bg-white/5 hover:text-zinc-200"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setDrawerOpen(true)}
+                className="relative inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-full border border-white/10 bg-zinc-950 px-5 text-sm font-medium text-zinc-200 transition hover:border-white/20 lg:hidden"
+              >
+                <SlidersHorizontal className="h-4 w-4" aria-hidden />
                 Filtros
-              </h2>
-              <button
-                type="button"
-                onClick={() => setDrawerOpen(false)}
-                className="p-2 text-gray-400 transition hover:text-gray-800"
-                aria-label="Cerrar"
-              >
-                <X className="h-5 w-5" />
+                {activeFilterCount > 0 && (
+                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#F97316] px-1.5 text-[11px] font-semibold tabular-nums text-black">
+                    {activeFilterCount}
+                  </span>
+                )}
               </button>
-            </div>
-            <div className="min-h-0 flex-1 overflow-y-auto">
-              {renderFilterSidebar(filterIdMobile)}
+              <label className="relative flex-1 sm:flex-none">
+                <span className="sr-only">Ordenar por</span>
+                <ArrowUpDown
+                  className="pointer-events-none absolute left-4 top-1/2 hidden h-4 w-4 -translate-y-1/2 text-zinc-500 sm:block"
+                  aria-hidden
+                />
+                <select
+                  value={orden}
+                  onChange={(e) => setOrden(e.target.value as Orden)}
+                  className="h-12 w-full cursor-pointer appearance-none rounded-full border border-white/10 bg-zinc-950 pl-5 pr-9 text-sm sm:pl-11 sm:pr-10 text-zinc-200 outline-none transition hover:border-white/20 focus:border-[#F97316]/70 focus:ring-2 focus:ring-[#F97316]/20"
+                >
+                  {ORDENES.map((o) => (
+                    <option key={o.id} value={o.id}>
+                      {o.nombre}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown
+                  className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500"
+                  aria-hidden
+                />
+              </label>
             </div>
           </div>
-        </div>
 
-        <main className="min-w-0 flex-1">
-          <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
-            <h1 className="text-4xl font-light tracking-tight text-gray-900">
-              Productos
-            </h1>
-            <button
-              type="button"
-              onClick={() => setDrawerOpen(true)}
-              className="relative inline-flex items-center gap-2 border border-gray-300 bg-white px-3 py-2 text-xs font-medium uppercase tracking-widest text-gray-700 transition hover:border-gray-400 lg:hidden"
-            >
-              <Filter className="h-4 w-4" />
-              Filtros
-              {activeFilterCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center bg-gray-900 px-1 text-[10px] font-medium text-white">
-                  {activeFilterCount > 99 ? "99+" : activeFilterCount}
-                </span>
-              )}
-            </button>
-          </div>
-
-          {/* Chips */}
-          {activeFilterCount > 0 && (
-            <div className="mb-6 flex flex-wrap items-center gap-2">
-              {qFromUrl.trim() && (
-                <span className="inline-flex items-center gap-1.5 border border-gray-300 bg-white px-2.5 py-1 text-xs text-gray-700">
-                  Búsqueda: {qFromUrl.trim()}
-                  <button
-                    type="button"
-                    onClick={removeChipSearch}
-                    className="p-0.5 text-gray-400 transition hover:text-gray-700"
-                    aria-label="Quitar búsqueda"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                </span>
-              )}
-              {soloDisponibles && (
-                <span className="inline-flex items-center gap-1.5 border border-gray-300 bg-white px-2.5 py-1 text-xs text-gray-700">
-                  Solo disponibles
-                  <button
-                    type="button"
-                    onClick={removeChipDisponible}
-                    className="p-0.5 text-gray-400 transition hover:text-gray-700"
-                    aria-label="Quitar filtro disponibles"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                </span>
-              )}
-              {categoriaIds.map((id) => (
-                <span
-                  key={`c-${id}`}
-                  className="inline-flex items-center gap-1.5 border border-gray-300 bg-white px-2.5 py-1 text-xs text-gray-700"
+          {chips.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2">
+              {chips.map((c) => (
+                <button
+                  key={`${c.tipo}-${c.id}`}
+                  type="button"
+                  onClick={() => quitarChip(c)}
+                  className="group/chip inline-flex items-center gap-1.5 rounded-full border border-orange-500/40 bg-orange-500/10 py-1.5 pl-3 pr-2 text-xs font-medium text-orange-200 transition hover:border-orange-400 hover:bg-orange-500/20"
+                  aria-label={`Quitar filtro ${c.label}`}
                 >
-                  {categoriaNombreById.get(id) ?? `Categoría ${id}`}
-                  <button
-                    type="button"
-                    onClick={() => removeChipCategoria(id)}
-                    className="p-0.5 text-gray-400 transition hover:text-gray-700"
-                    aria-label="Quitar categoría"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                </span>
+                  {c.label}
+                  <X className="h-3.5 w-3.5 text-orange-300 transition group-hover/chip:text-white" aria-hidden />
+                </button>
               ))}
-              {marcaIds.map((id) => (
-                <span
-                  key={`m-${id}`}
-                  className="inline-flex items-center gap-1.5 border border-gray-300 bg-white px-2.5 py-1 text-xs text-gray-700"
+              {chips.length > 1 && (
+                <button
+                  type="button"
+                  onClick={clearAllFilters}
+                  className="ml-1 rounded px-1 text-xs text-zinc-400 underline underline-offset-4 transition hover:text-white"
                 >
-                  {marcaNombreById.get(id) ?? `Marca ${id}`}
-                  <button
-                    type="button"
-                    onClick={() => removeChipMarca(id)}
-                    className="p-0.5 text-gray-400 transition hover:text-gray-700"
-                    aria-label="Quitar marca"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                </span>
-              ))}
-              <button
-                type="button"
-                onClick={clearAllFilters}
-                className="ml-1 text-xs text-gray-500 underline underline-offset-2 transition hover:text-gray-800"
-              >
-                Limpiar filtros
-              </button>
+                  Limpiar todo
+                </button>
+              )}
             </div>
           )}
+        </header>
 
-          {error && (
-            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-              {error}
+        <div className="flex gap-8">
+          {/* Filtros en compu */}
+          <aside className="hidden w-64 shrink-0 lg:block" aria-label="Filtros">
+            <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pb-6 pr-2 [scrollbar-color:#3f3f46_transparent] [scrollbar-width:thin]">
+              {renderFiltros()}
             </div>
-          )}
+          </aside>
 
-          <div className="relative min-h-[200px]">
-            {loading && (
-              <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4 md:gap-4">
-                {Array.from({ length: 8 }).map((_, i) => (
-                  <ProductCardSkeleton key={i} />
-                ))}
+          <main className="min-w-0 flex-1">
+            {error && (
+              <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                {error}
               </div>
             )}
 
-            {!loading && productos.length === 0 && (
-              <div className="flex flex-col items-center justify-center border border-dashed border-gray-300 bg-white px-6 py-16 text-center">
-                <p className="text-base font-light text-gray-900">
-                  No hay productos con estos filtros
+            {loading && <GrillaSkeleton />}
+
+            {!loading && !error && filtrados.length === 0 && (
+              <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/15 px-6 py-20 text-center">
+                <Search className="h-8 w-8 text-zinc-600" strokeWidth={1.5} aria-hidden />
+                <p className="mt-4 text-base font-medium text-zinc-100">
+                  No encontramos productos con esos filtros
                 </p>
-                <p className="mt-2 max-w-md text-sm text-gray-500">
-                  Probá ampliar la búsqueda o quitá algunos filtros para ver más
-                  resultados.
+                <p className="mt-2 max-w-sm text-sm text-zinc-400">
+                  Probá con otra palabra o quitá algún filtro. Si no lo ves,
+                  escribinos y te decimos si lo tenemos.
                 </p>
                 <button
                   type="button"
                   onClick={clearAllFilters}
-                  className="mt-6 text-xs text-gray-500 underline underline-offset-2 transition hover:text-gray-800"
+                  className="mt-6 rounded-full bg-[#F97316] px-5 py-2.5 text-sm font-semibold text-black transition hover:bg-orange-400"
                 >
-                  Limpiar filtros
+                  Ver todos los productos
                 </button>
               </div>
             )}
 
-            {!loading && productos.length > 0 && (
-              <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4 md:gap-4">
-                {productos.map((p) => {
-                  const marcaNombre =
-                    p.marcas?.nombre ?? marcaNombreById.get(p.marca_id ?? 0);
-                  return (
-                    <article
+            {!loading && filtrados.length > 0 && (
+              <>
+                <div
+                  key={firmaFiltros}
+                  className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4"
+                >
+                  {mostrados.map((p, i) => (
+                    <ProductCard
                       key={p.id}
-                      className="group relative flex flex-col overflow-hidden border-b-2 border-transparent bg-white shadow-none transition duration-200 hover:border-amber-500 hover:shadow-sm"
-                    >
-                      <Link href={`/productos/${p.id}`} className="block">
-                        <div className="relative aspect-square w-full overflow-hidden bg-gray-50">
-                          {p.imagen_url ? (
-                            <img
-                              src={p.imagen_url}
-                              alt=""
-                              className="h-full w-full object-contain transition duration-300 ease-out group-hover:scale-[1.01]"
-                            />
-                          ) : (
-                            <div className="flex h-full w-full items-center justify-center px-2 text-center text-xs font-normal text-gray-500">
-                              Sin imagen
-                            </div>
-                          )}
-                          {!p.disponible && (
-                            <span className="absolute left-2 top-2 bg-black px-2 py-0.5 text-xs font-medium text-white">
-                              SIN STOCK
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex flex-1 flex-col px-1 py-3">
-                          {marcaNombre ? (
-                            <p className="text-xs font-normal uppercase tracking-widest text-gray-400">
-                              {marcaNombre}
-                            </p>
-                          ) : (
-                            <p className="text-xs font-normal uppercase tracking-widest text-gray-400">
-                              Sin marca
-                            </p>
-                          )}
-                          <h2 className="mt-1 line-clamp-2 text-sm font-medium leading-snug text-gray-900">
-                            {p.nombre}
-                          </h2>
-                          {p.codigo && (
-                            <p className="mt-1 font-mono text-xs text-gray-400">
-                              {p.codigo}
-                            </p>
-                          )}
-                          {/* El precio no se muestra en la vista pública */}
-                        </div>
-                      </Link>
-                      <div className="px-1 pb-3">
-                        <AgregarConsultaButton
-                          compact
-                          className="w-full"
-                          producto={{
-                            id: p.id,
-                            nombre: p.nombre,
-                            codigo: p.codigo,
-                            imagen_url: p.imagen_url,
-                          }}
-                        />
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            )}
+                      producto={p}
+                      marca={marcaVisible(p.marca_id)}
+                      // Escalonado de entrada solo dentro de cada tanda de 24
+                      orden={Math.min(i % POR_PAGINA, 12)}
+                    />
+                  ))}
+                </div>
 
+                <div className="mt-10 flex flex-col items-center gap-4">
+                  <p className="text-xs tabular-nums text-zinc-500">
+                    Mostrando {mostrados.length} de {filtrados.length}
+                  </p>
+                  <div className="h-1 w-48 overflow-hidden rounded-full bg-white/10">
+                    <div
+                      className="h-full rounded-full bg-[#F97316] transition-[width] duration-500 ease-out"
+                      style={{ width: `${(mostrados.length / filtrados.length) * 100}%` }}
+                    />
+                  </div>
+                  {restantes > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setVisibles((v) => v + POR_PAGINA)}
+                      className="mt-2 inline-flex items-center gap-2 rounded-full border border-white/15 px-6 py-3 text-sm font-semibold text-zinc-100 transition hover:border-[#F97316] hover:bg-[#F97316] hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F97316]"
+                    >
+                      Ver más productos
+                      <ChevronDown className="h-4 w-4" aria-hidden />
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </main>
+        </div>
+      </div>
+
+      {/* Filtros en celular: panel que sube desde abajo */}
+      <div
+        className={`fixed inset-0 z-[60] lg:hidden ${drawerOpen ? "" : "pointer-events-none"}`}
+        aria-hidden={!drawerOpen}
+      >
+        <button
+          type="button"
+          tabIndex={drawerOpen ? 0 : -1}
+          aria-label="Cerrar filtros"
+          onClick={() => setDrawerOpen(false)}
+          className={`absolute inset-0 bg-black/60 backdrop-blur-[2px] transition-opacity duration-300 ${
+            drawerOpen ? "opacity-100" : "opacity-0"
+          }`}
+        />
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Filtros"
+          inert={!drawerOpen}
+          className={`absolute inset-x-0 bottom-0 flex max-h-[85vh] flex-col rounded-t-3xl border-t border-white/10 bg-[#0f0f0f] shadow-[0_-20px_50px_-20px_rgba(0,0,0,0.8)] transition-transform duration-[450ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
+            drawerOpen ? "translate-y-0" : "translate-y-full"
+          }`}
+        >
+          <div className="mx-auto mt-3 h-1 w-10 rounded-full bg-white/20" aria-hidden />
+          <div className="flex items-center justify-between px-5 pb-2 pt-3">
+            <h2 className="text-lg font-semibold">Filtros</h2>
+            <button
+              type="button"
+              onClick={() => setDrawerOpen(false)}
+              className="rounded-full p-2 text-zinc-400 transition hover:bg-white/5 hover:text-white"
+              aria-label="Cerrar"
+            >
+              <X className="h-5 w-5" />
+            </button>
           </div>
-        </main>
+          <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-4">
+            {renderFiltros()}
+          </div>
+          <div className="flex gap-3 border-t border-white/10 p-4">
+            {activeFilterCount > 0 && (
+              <button
+                type="button"
+                onClick={clearAllFilters}
+                className="rounded-full border border-white/15 px-5 py-3 text-sm font-medium text-zinc-200"
+              >
+                Limpiar
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setDrawerOpen(false)}
+              className="flex-1 rounded-full bg-[#F97316] px-5 py-3 text-sm font-semibold text-black"
+            >
+              Ver {filtrados.length} {filtrados.length === 1 ? "producto" : "productos"}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
