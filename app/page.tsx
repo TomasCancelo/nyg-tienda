@@ -1,4 +1,5 @@
-import { supabase } from "../lib/supabase";
+import { getCategorias, getMarcas, getProductos } from "../lib/catalogo";
+import { categoriaUrl, marcaUrl } from "../lib/slug";
 import PlaquetasAtenea from "./components/PlaquetasAtenea";
 import Image from "next/image";
 import Link from "next/link";
@@ -37,8 +38,8 @@ type CategoriaTile = {
 
 type MarcaChip = { id: number; nombre: string; cantidad: number };
 
-export const revalidate = 0;
-export const dynamic = "force-dynamic";
+// Página guardada que se renueva sola cada 5 minutos
+export const revalidate = 300;
 
 const WHATSAPP = "https://wa.me/59896077602";
 const MAPS_LINK =
@@ -74,23 +75,26 @@ async function getResumenCatalogo(): Promise<{
   total: number;
   categorias: CategoriaTile[];
   marcas: MarcaChip[];
+  nombreCategoria: Map<number, string>;
 }> {
-  const [prodRes, catRes, marRes] = await Promise.all([
-    supabase
-      .from("productos")
-      .select("id, categoria_id, marca_id, imagen_url")
-      .eq("disponible", true)
-      .order("id", { ascending: true }),
-    supabase.from("categorias").select("id, nombre, parent_id"),
-    supabase.from("marcas").select("id, nombre"),
-  ]);
-  // Si algo falla, el inicio sigue cargando sin estas secciones
-  if (prodRes.error || catRes.error || marRes.error) {
-    return { total: 0, categorias: [], marcas: [] };
+  let productos: ProductoResumen[];
+  let cats: Categoria[];
+  let marcasRows: Marca[];
+  try {
+    const [todos, categoriasDb, marcasDb] = await Promise.all([
+      getProductos(),
+      getCategorias(),
+      getMarcas(),
+    ]);
+    productos = todos
+      .filter((p) => p.disponible)
+      .sort((a, b) => a.id - b.id);
+    cats = categoriasDb;
+    marcasRows = marcasDb;
+  } catch {
+    // Si algo falla, el inicio sigue cargando sin estas secciones
+    return { total: 0, categorias: [], marcas: [], nombreCategoria: new Map() };
   }
-  const productos = (prodRes.data ?? []) as ProductoResumen[];
-  const cats = (catRes.data ?? []) as Categoria[];
-  const marcasRows = (marRes.data ?? []) as Marca[];
 
   const padreDe = new Map<number, number | null>();
   for (const c of cats) padreDe.set(c.id, c.parent_id);
@@ -151,7 +155,12 @@ async function getResumenCatalogo(): Promise<{
     .map((m) => ({ id: m.id, nombre: m.nombre, cantidad: porMarca.get(m.id)! }))
     .sort((a, b) => b.cantidad - a.cantidad);
 
-  return { total: productos.length, categorias, marcas };
+  return {
+    total: productos.length,
+    categorias,
+    marcas,
+    nombreCategoria: new Map(cats.map((c) => [c.id, c.nombre])),
+  };
 }
 
 function EncabezadoSeccion({
@@ -250,7 +259,7 @@ export default async function Home() {
               {ATAJOS.map((a) => (
                 <Link
                   key={a.id}
-                  href={`/productos?categoria_id=${a.id}`}
+                  href={categoriaUrl({ id: a.id, nombre: resumen.nombreCategoria.get(a.id) ?? a.nombre })}
                   className="rounded-full border border-zinc-300 bg-white px-3 py-1.5 text-zinc-800 transition hover:border-orange-500 hover:text-orange-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-600"
                 >
                   {a.nombre}
@@ -319,7 +328,7 @@ export default async function Home() {
               {resumen.categorias.map((c) => (
                 <li key={c.id}>
                   <Link
-                    href={`/productos?categoria_id=${c.id}`}
+                    href={categoriaUrl(c)}
                     className="inicio-tile group flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-600"
                   >
                     <div className="aspect-[4/3] w-full overflow-hidden bg-white p-4">
@@ -417,7 +426,7 @@ export default async function Home() {
               {resumen.marcas.map((m) => (
                 <li key={m.id}>
                   <Link
-                    href={`/productos?marca_id=${m.id}`}
+                    href={marcaUrl(m)}
                     className="group flex items-baseline gap-2 rounded-xl border border-zinc-200 bg-white px-5 py-3 transition hover:-translate-y-0.5 hover:border-orange-400 hover:shadow-[0_10px_24px_-16px_rgba(234,88,12,0.6)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-600"
                   >
                     <span className="text-lg font-bold tracking-tight text-zinc-800 group-hover:text-zinc-950">

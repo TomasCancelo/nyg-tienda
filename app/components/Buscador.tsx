@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { productoUrl } from "../../lib/slug";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Search, X } from "lucide-react";
@@ -147,7 +148,7 @@ export default function Buscador({ isOpen, onOpen, onClose }: BuscadorProps) {
                   resultados.map((producto) => (
                     <Link
                       key={producto.id}
-                      href={`/productos/${producto.id}`}
+                      href={productoUrl(producto)}
                       onClick={cerrarBuscador}
                       className="flex items-center gap-3 border-b border-gray-800 px-4 py-3 transition hover:bg-gray-800"
                     >

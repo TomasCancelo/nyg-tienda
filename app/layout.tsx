@@ -6,6 +6,8 @@ import Footer from "./components/Footer";
 import WhatsAppButton from "./components/WhatsAppButton";
 import ConsultaCarrito from "./components/ConsultaCarrito";
 import { ConsultaProvider } from "./context/ConsultaContext";
+import { getCategorias } from "../lib/catalogo";
+import { SITE_URL } from "../lib/slug";
 
 const raleway = Raleway({
   subsets: ["latin"],
@@ -20,6 +22,8 @@ const bebasNeue = Bebas_Neue({
 });
 
 export const metadata: Metadata = {
+  // Dirección base para links e imágenes de vista previa (WhatsApp, redes)
+  metadataBase: new URL(SITE_URL),
   title: "N&G Materiales Eléctricos | Iluminación y Electricidad - Maldonado",
   description:
     "Lámparas, cables, arañas, reflectores LED, artefactos solares y más. Tu tienda de materiales eléctricos e iluminación en Maldonado, Uruguay. Stock permanente, precios en pesos uruguayos y envíos a todo el país.",
@@ -38,11 +42,37 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+/** Categorías del menú, armadas en el servidor. Si la base falla, el menú muestra "Ver todos los productos". */
+async function categoriasDelMenu() {
+  try {
+    const todas = await getCategorias();
+    const principales = todas
+      .filter((c) => c.parent_id == null)
+      .map(({ id, nombre }) => ({ id, nombre }));
+    const subcategoriasByParent: Record<
+      number,
+      { id: number; nombre: string; parent_id: number }[]
+    > = {};
+    for (const c of todas) {
+      if (c.parent_id == null) continue;
+      (subcategoriasByParent[c.parent_id] ??= []).push({
+        id: c.id,
+        nombre: c.nombre,
+        parent_id: c.parent_id,
+      });
+    }
+    return { principales, subcategoriasByParent };
+  } catch {
+    return { principales: [], subcategoriasByParent: {} };
+  }
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const menu = await categoriasDelMenu();
   const localBusinessJsonLd = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
@@ -74,7 +104,10 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessJsonLd) }}
         />
         <ConsultaProvider>
-          <Navbar />
+          <Navbar
+            categorias={menu.principales}
+            subcategoriasByParent={menu.subcategoriasByParent}
+          />
           <main className="bg-[#faf9f7]">{children}</main>
           <Footer />
           <WhatsAppButton />

@@ -58,7 +58,11 @@ export default function Footer() {
         </div>
       </div>
       <div className="border-t border-white/10 py-4 text-center text-xs text-zinc-500">
-        <p>2025 N&amp;G - Materiales electricos - Maldonado, Uruguay</p>
+        {/* El año se calcula solo, así no queda desactualizado */}
+        <p>
+          © {new Date().getFullYear()} N&amp;G Materiales Eléctricos · Maldonado,
+          Uruguay
+        </p>
       </div>
     </footer>
   );

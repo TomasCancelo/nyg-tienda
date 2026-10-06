@@ -6,6 +6,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { marcaUrl } from "../../lib/slug";
 import { useRef, type PointerEvent } from "react";
 import { ArrowRight } from "lucide-react";
 
@@ -139,7 +140,7 @@ export default function PlaquetasAtenea() {
 
         <div className="flex justify-center px-6 pb-10 sm:pb-12">
           <Link
-            href="/productos?marca_id=12"
+            href={marcaUrl({ id: 12, nombre: "Atenea" })}
             className="group inline-flex items-center gap-2 rounded-full bg-zinc-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#F97316] hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-700 focus-visible:ring-offset-2 focus-visible:ring-offset-[#ebe7e0]"
           >
             Ver más plaquetas

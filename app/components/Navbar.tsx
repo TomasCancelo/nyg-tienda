@@ -2,9 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "../../lib/supabase";
 import Buscador from "./Buscador";
+import { categoriaUrl } from "../../lib/slug";
 import { ChevronDown, ChevronRight, Menu as MenuIcon } from "lucide-react";
 
 type Categoria = {
@@ -18,70 +17,22 @@ type CategoriaSub = {
   parent_id: number;
 };
 
-export default function Navbar() {
-  const router = useRouter();
-  const [categorias, setCategorias] = useState<Categoria[]>([]);
+// Las categorías llegan armadas desde el servidor (layout), así el menú no
+// muestra "Cargando categorías..." y Google puede seguir sus links.
+export default function Navbar({
+  categorias,
+  subcategoriasByParent,
+}: {
+  categorias: Categoria[];
+  subcategoriasByParent: Record<number, CategoriaSub[]>;
+}) {
   const [isProductosOpen, setIsProductosOpen] = useState(false);
   const [isBuscadorOpen, setIsBuscadorOpen] = useState(false);
   const [categoriaHoverId, setCategoriaHoverId] = useState<number | null>(null);
-  const [subcategoriasByParent, setSubcategoriasByParent] = useState<
-    Record<number, CategoriaSub[]>
-  >({});
   const [subFadeIn, setSubFadeIn] = useState(true);
   const [mobileExpandedId, setMobileExpandedId] = useState<number | null>(
     null,
   );
-
-  useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      const { data: mainData, error: mainError } = await supabase
-        .from("categorias")
-        .select("id, nombre")
-        .is("parent_id", null)
-        .order("nombre", { ascending: true });
-
-      if (cancelled) return;
-      if (mainError) {
-        console.error("Error al cargar categorias principales:", mainError.message);
-        return;
-      }
-
-      const mainCats = (mainData ?? []) as Categoria[];
-      setCategorias(mainCats);
-
-      const ids = mainCats.map((c) => c.id);
-      if (ids.length === 0) {
-        setSubcategoriasByParent({});
-        return;
-      }
-
-      const { data: subData, error: subError } = await supabase
-        .from("categorias")
-        .select("id, nombre, parent_id")
-        .in("parent_id", ids)
-        .order("nombre", { ascending: true });
-
-      if (cancelled) return;
-      if (subError) {
-        console.error("Error al cargar subcategorias:", subError.message);
-        setSubcategoriasByParent({});
-        return;
-      }
-
-      const map: Record<number, CategoriaSub[]> = {};
-      for (const row of (subData ?? []) as CategoriaSub[]) {
-        if (!map[row.parent_id]) map[row.parent_id] = [];
-        map[row.parent_id].push(row);
-      }
-      setSubcategoriasByParent(map);
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   const categoriaActiva = useMemo(
     () => categorias.find((c) => c.id === categoriaHoverId) ?? null,
@@ -113,12 +64,9 @@ export default function Navbar() {
     return () => window.clearTimeout(t);
   }, [categoriaHoverId, isProductosOpen]);
 
-  const goToCategoria = (id: number) => {
+  const cerrarMenu = () => {
     setIsProductosOpen(false);
-    setCategoriaHoverId(id);
     setMobileExpandedId(null);
-    // Mantener compatibilidad con el catálogo público actual (filtro usa `categoria_id`)
-    router.push(`/productos?categorias=${id}&categoria_id=${id}`);
   };
 
   return (
@@ -182,19 +130,23 @@ export default function Navbar() {
                 <div className="flex">
                   <div className="w-[40%] bg-zinc-900">
                     {categorias.length === 0 ? (
-                      <div className="px-4 py-4 text-sm font-medium text-zinc-400">
-                        Cargando categorías...
-                      </div>
+                      <Link
+                        href="/productos"
+                        onClick={cerrarMenu}
+                        className="block px-4 py-4 text-sm font-medium text-zinc-400 hover:text-amber-400"
+                      >
+                        Ver todos los productos
+                      </Link>
                     ) : (
                       categorias.map((cat) => {
                         const isActive = cat.id === categoriaHoverId;
                         return (
-                          <button
+                          <Link
                             key={cat.id}
-                            type="button"
+                            href={categoriaUrl(cat)}
                             onMouseEnter={() => setCategoriaHoverId(cat.id)}
                             onFocus={() => setCategoriaHoverId(cat.id)}
-                            onClick={() => goToCategoria(cat.id)}
+                            onClick={cerrarMenu}
                             className={`flex w-full items-center justify-between gap-3 py-3 px-4 text-left text-sm font-semibold uppercase tracking-wide transition ${
                               isActive
                                 ? "bg-zinc-800 text-amber-500"
@@ -207,7 +159,7 @@ export default function Navbar() {
                                 isActive ? "text-amber-500" : "text-amber-400"
                               }`}
                             />
-                          </button>
+                          </Link>
                         );
                       })
                     )}
@@ -228,26 +180,26 @@ export default function Navbar() {
                       {categoriaActiva && subcategoriasActivas.length > 0 ? (
                         <div>
                           {subcategoriasActivas.map((sub) => (
-                            <button
+                            <Link
                               key={sub.id}
-                              type="button"
-                              onClick={() => goToCategoria(sub.id)}
+                              href={categoriaUrl(sub)}
+                              onClick={cerrarMenu}
                               className="block w-full py-2 px-4 text-left text-gray-300 transition hover:bg-zinc-700 hover:text-white"
                             >
                               {sub.nombre}
-                            </button>
+                            </Link>
                           ))}
                         </div>
                       ) : (
                         <div className="px-4 pb-4 pt-1">
                           {categoriaActiva ? (
-                            <button
-                              type="button"
-                              onClick={() => goToCategoria(categoriaActiva.id)}
+                            <Link
+                              href={categoriaUrl(categoriaActiva)}
+                              onClick={cerrarMenu}
                               className="text-left text-sm font-medium text-amber-500 hover:text-amber-400"
                             >
                               Ver todos los productos de {categoriaActiva.nombre}
-                            </button>
+                            </Link>
                           ) : (
                             <p className="text-sm text-gray-400">
                               Ver todos los productos
@@ -264,9 +216,13 @@ export default function Navbar() {
               <div className="lg:hidden">
                 <div className="bg-zinc-900">
                   {categorias.length === 0 ? (
-                    <div className="px-4 py-4 text-sm font-medium text-zinc-400">
-                      Cargando categorías...
-                    </div>
+                    <Link
+                      href="/productos"
+                      onClick={cerrarMenu}
+                      className="block px-4 py-4 text-sm font-medium text-zinc-400 hover:text-amber-400"
+                    >
+                      Ver todos los productos
+                    </Link>
                   ) : (
                     categorias.map((cat) => {
                       const expanded = mobileExpandedId === cat.id;
@@ -303,23 +259,23 @@ export default function Navbar() {
                             <div className="bg-zinc-800">
                               {subs.length > 0 ? (
                                 subs.map((sub) => (
-                                  <button
+                                  <Link
                                     key={sub.id}
-                                    type="button"
-                                    onClick={() => goToCategoria(sub.id)}
+                                    href={categoriaUrl(sub)}
+                                    onClick={cerrarMenu}
                                     className="block w-full py-2 px-4 text-left text-gray-300 transition hover:bg-zinc-700 hover:text-white"
                                   >
                                     {sub.nombre}
-                                  </button>
+                                  </Link>
                                 ))
                               ) : (
-                                <button
-                                  type="button"
-                                  onClick={() => goToCategoria(cat.id)}
+                                <Link
+                                  href={categoriaUrl(cat)}
+                                  onClick={cerrarMenu}
                                   className="block w-full py-2 px-4 text-left text-sm font-medium text-amber-500 hover:text-amber-400"
                                 >
                                   Ver todos los productos de {cat.nombre}
-                                </button>
+                                </Link>
                               )}
                             </div>
                           )}

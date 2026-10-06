@@ -1,6 +1,7 @@
 'use client';
 
 import Link from "next/link";
+import { productoUrl } from "../../lib/slug";
 import { useEffect, useRef } from "react";
 
 type ProductoDestacado = {
@@ -107,7 +108,7 @@ export default function DestacadosCarousel({ productos }: Props) {
       {items.map((producto, index) => (
         <Link
           key={`${producto.id}-${index}`}
-          href={`/productos/${producto.id}`}
+          href={productoUrl(producto)}
           onClick={handleClick}
           className="group flex flex-shrink-0 flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white transition hover:border-orange-500/50 hover:-translate-y-1"
           style={{ minWidth: `${CARD_WIDTH}px`, width: `${CARD_WIDTH}px` }}
