@@ -97,7 +97,7 @@ export default function ConsultaCarrito() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="fixed bottom-24 right-6 z-50 inline-flex h-14 w-14 items-center justify-center rounded-full border border-amber-500 bg-black text-amber-500 shadow-lg transition hover:bg-zinc-900"
+        className="fixed bottom-24 right-6 z-50 inline-flex h-14 w-14 items-center justify-center rounded-full border border-amber-500 bg-zinc-950 text-amber-500 shadow-lg transition hover:bg-zinc-800"
         aria-label="Abrir carrito de consulta"
       >
         <ShoppingCart className="h-6 w-6" />
@@ -126,17 +126,17 @@ export default function ConsultaCarrito() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className="fixed right-0 top-0 z-50 flex h-full w-full max-w-full flex-col border-l border-zinc-700 bg-zinc-900 sm:w-80"
+              className="fixed right-0 top-0 z-50 flex h-full w-full max-w-full flex-col border-l border-zinc-300 bg-white sm:w-80"
             >
-              <header className="flex shrink-0 items-center justify-between border-b border-zinc-700 px-4 py-4">
+              <header className="flex shrink-0 items-center justify-between border-b border-zinc-300 px-4 py-4">
                 <div>
-                  <h2 className="text-lg font-semibold text-white">Mi consulta</h2>
-                  <p className="text-sm text-zinc-400">{productos.length} productos</p>
+                  <h2 className="text-lg font-semibold text-zinc-900">Mi consulta</h2>
+                  <p className="text-sm text-zinc-600">{productos.length} productos</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  className="rounded-md p-2 text-zinc-400 transition hover:bg-zinc-800 hover:text-white"
+                  className="rounded-md p-2 text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-900"
                   aria-label="Cerrar panel"
                 >
                   <X className="h-5 w-5" />
@@ -145,15 +145,15 @@ export default function ConsultaCarrito() {
 
               <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-4">
                 {productos.length === 0 ? (
-                  <p className="text-sm text-zinc-400">No agregaste productos aún</p>
+                  <p className="text-sm text-zinc-600">No agregaste productos aún</p>
                 ) : (
                   productos.map((producto) => (
                     <article
                       key={producto.id}
-                      className="rounded-xl border border-zinc-700 bg-zinc-800 p-3"
+                      className="rounded-xl border border-zinc-300 bg-zinc-100 p-3"
                     >
                       <div className="flex gap-3">
-                        <div className="h-14 w-14 shrink-0 overflow-hidden rounded-md bg-zinc-900">
+                        <div className="h-14 w-14 shrink-0 overflow-hidden rounded-md bg-white">
                           {producto.imagen_url ? (
                             <img
                               src={producto.imagen_url}
@@ -167,15 +167,15 @@ export default function ConsultaCarrito() {
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <h3 className="line-clamp-2 text-sm font-medium text-white">
+                          <h3 className="line-clamp-2 text-sm font-medium text-zinc-900">
                             {producto.nombre}
                           </h3>
-                          <p className="mt-1 text-xs text-zinc-400">Cód: {producto.codigo}</p>
+                          <p className="mt-1 text-xs text-zinc-600">Cód: {producto.codigo}</p>
                         </div>
                         <button
                           type="button"
                           onClick={() => quitarProducto(producto.id)}
-                          className="self-start rounded-md p-1.5 text-zinc-400 transition hover:bg-zinc-700 hover:text-white"
+                          className="self-start rounded-md p-1.5 text-zinc-600 transition hover:bg-zinc-200 hover:text-zinc-900"
                           aria-label={`Quitar ${producto.nombre}`}
                         >
                           <X className="h-4 w-4" />
@@ -183,7 +183,7 @@ export default function ConsultaCarrito() {
                       </div>
 
                       <div className="mt-3">
-                        <label className="text-xs text-zinc-400">Cantidad</label>
+                        <label className="text-xs text-zinc-600">Cantidad</label>
                         <input
                           type="number"
                           min={1}
@@ -191,7 +191,7 @@ export default function ConsultaCarrito() {
                           onChange={(e) =>
                             cambiarCantidad(producto.id, Number(e.target.value))
                           }
-                          className="mt-1 w-24 rounded-md border border-zinc-600 bg-zinc-900 px-2 py-1 text-sm text-white outline-none focus:border-amber-500"
+                          className="mt-1 w-24 rounded-md border border-zinc-300 bg-white px-2 py-1 text-sm text-zinc-900 outline-none focus:border-amber-500"
                         />
                       </div>
                     </article>
@@ -199,14 +199,14 @@ export default function ConsultaCarrito() {
                 )}
               </div>
 
-              <footer className="shrink-0 border-t border-zinc-700 px-4 py-4">
+              <footer className="shrink-0 border-t border-zinc-300 px-4 py-4">
                 {exito ? (
-                  <p className="mb-3 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">
+                  <p className="mb-3 rounded-lg border border-emerald-500/40 bg-emerald-50 px-3 py-2 text-sm text-emerald-300">
                     {exito}
                   </p>
                 ) : null}
                 {errorEnvio ? (
-                  <p className="mb-3 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+                  <p className="mb-3 rounded-lg border border-red-500/40 bg-red-50 px-3 py-2 text-sm text-red-300">
                     {errorEnvio}
                   </p>
                 ) : null}
@@ -215,7 +215,7 @@ export default function ConsultaCarrito() {
                   <div>
                     <label
                       htmlFor="consulta-nombre"
-                      className="mb-1 block text-xs text-zinc-400"
+                      className="mb-1 block text-xs text-zinc-600"
                     >
                       Nombre completo
                     </label>
@@ -226,13 +226,13 @@ export default function ConsultaCarrito() {
                       autoComplete="name"
                       value={nombre}
                       onChange={(e) => setNombre(e.target.value)}
-                      className="w-full rounded-lg border border-zinc-600 bg-zinc-950 px-3 py-2 text-sm text-white outline-none focus:border-amber-500"
+                      className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:border-amber-500"
                     />
                   </div>
                   <div>
                     <label
                       htmlFor="consulta-telefono"
-                      className="mb-1 block text-xs text-zinc-400"
+                      className="mb-1 block text-xs text-zinc-600"
                     >
                       Teléfono / WhatsApp
                     </label>
@@ -243,13 +243,13 @@ export default function ConsultaCarrito() {
                       autoComplete="tel"
                       value={telefono}
                       onChange={(e) => setTelefono(e.target.value)}
-                      className="w-full rounded-lg border border-zinc-600 bg-zinc-950 px-3 py-2 text-sm text-white outline-none focus:border-amber-500"
+                      className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:border-amber-500"
                     />
                   </div>
                   <div>
                     <label
                       htmlFor="consulta-mensaje"
-                      className="mb-1 block text-xs text-zinc-400"
+                      className="mb-1 block text-xs text-zinc-600"
                     >
                       Mensaje adicional (opcional)
                     </label>
@@ -258,7 +258,7 @@ export default function ConsultaCarrito() {
                       rows={3}
                       value={mensajeAdicional}
                       onChange={(e) => setMensajeAdicional(e.target.value)}
-                      className="w-full resize-none rounded-lg border border-zinc-600 bg-zinc-950 px-3 py-2 text-sm text-white outline-none focus:border-amber-500"
+                      className="w-full resize-none rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:border-amber-500"
                     />
                   </div>
 
@@ -270,7 +270,7 @@ export default function ConsultaCarrito() {
                         setExito("");
                         setErrorEnvio("");
                       }}
-                      className="rounded-lg border border-zinc-600 px-4 py-2 text-sm text-zinc-200 transition hover:bg-zinc-800"
+                      className="rounded-lg border border-zinc-300 px-4 py-2 text-sm text-zinc-800 transition hover:bg-zinc-100"
                     >
                       Limpiar todo
                     </button>

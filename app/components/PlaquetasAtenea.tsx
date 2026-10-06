@@ -113,7 +113,11 @@ export default function PlaquetasAtenea() {
             >
               Plaquetas <span className="text-orange-700">Atenea</span>
             </h2>
-            <p className="mt-2 max-w-md text-pretty text-sm leading-relaxed text-zinc-700 sm:text-base">
+            <p className="mt-3 max-w-lg text-pretty text-base font-semibold leading-snug text-zinc-900 sm:text-lg">
+              Si buscás calidad a buen precio, es la línea que te{" "}
+              <span className="text-orange-700">recomendamos</span>.
+            </p>
+            <p className="mt-1.5 max-w-md text-pretty text-sm leading-relaxed text-zinc-700 sm:text-base">
               Atenea Clásica en blanco, plata y acero mate, y Atenea Plus. De 1
               a 3 módulos.
             </p>

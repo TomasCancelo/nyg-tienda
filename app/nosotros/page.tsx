@@ -67,14 +67,14 @@ const elegirnosItems = [
 export default function NosotrosPage() {
   return (
     <>
-      <section className="relative z-10 bg-black px-4 py-20">
+      <section className="relative z-10 bg-[#faf9f7] px-4 py-20">
         <div className="mx-auto grid max-w-6xl items-center gap-12 md:grid-cols-2 md:gap-16">
           <motion.div {...inViewBlock}>
-            <h2 className="text-4xl font-light tracking-tight text-white">
+            <h2 className="text-4xl font-light tracking-tight text-zinc-900">
               Nuestra Historia
             </h2>
             <div className="mt-4 h-0.5 w-16 bg-amber-500" aria-hidden />
-            <div className="mt-8 max-w-2xl space-y-5 text-zinc-300">
+            <div className="mt-8 max-w-2xl space-y-5 text-zinc-700">
               <p className="text-pretty leading-relaxed">
                 Con más de 10 años en el mercado, N&G Materiales Eléctricos nació
                 con un objetivo claro: acercar productos de iluminación y
@@ -89,7 +89,7 @@ export default function NosotrosPage() {
             </div>
           </motion.div>
           <motion.div {...inViewBlock}>
-            <div className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900 shadow-xl">
+            <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xl">
               <img
                 src={STORY_IMG_PLACEHOLDER}
                 alt=""
@@ -100,10 +100,10 @@ export default function NosotrosPage() {
         </div>
       </section>
 
-      <section className="relative z-10 bg-zinc-900 px-4 py-20">
+      <section className="relative z-10 bg-white px-4 py-20">
         <div className="mx-auto max-w-6xl">
           <motion.h2
-            className="text-center text-4xl font-light tracking-tight text-white"
+            className="text-center text-4xl font-light tracking-tight text-zinc-900"
             {...inViewBlock}
           >
             Lo que ofrecemos
@@ -114,7 +114,7 @@ export default function NosotrosPage() {
               return (
                 <motion.article
                   key={card.title}
-                  className="h-full rounded-2xl border border-amber-500/25 bg-zinc-800 p-8 shadow-lg"
+                  className="h-full rounded-2xl border border-amber-500/25 bg-zinc-100 p-8 shadow-lg"
                   initial={{ opacity: 0, y: 50 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{
@@ -125,14 +125,14 @@ export default function NosotrosPage() {
                   viewport={{ once: true, margin: "-100px" }}
                 >
                   <Icon
-                    className="h-10 w-10 text-amber-500"
+                    className="h-10 w-10 text-orange-600"
                     strokeWidth={1.5}
                     aria-hidden
                   />
-                  <h3 className="mt-5 text-xl font-semibold text-white">
+                  <h3 className="mt-5 text-xl font-semibold text-zinc-900">
                     {card.title}
                   </h3>
-                  <p className="mt-3 text-pretty text-sm leading-relaxed text-zinc-400">
+                  <p className="mt-3 text-pretty text-sm leading-relaxed text-zinc-600">
                     {card.body}
                   </p>
                 </motion.article>
@@ -142,10 +142,10 @@ export default function NosotrosPage() {
         </div>
       </section>
 
-      <section className="relative z-10 bg-black px-4 py-20">
+      <section className="relative z-10 bg-[#faf9f7] px-4 py-20">
         <div className="mx-auto max-w-6xl">
           <motion.h2
-            className="text-center text-4xl font-light tracking-tight text-white"
+            className="text-center text-4xl font-light tracking-tight text-zinc-900"
             {...inViewBlock}
           >
             Por qué elegirnos
@@ -167,15 +167,15 @@ export default function NosotrosPage() {
                   viewport={{ once: true, margin: "-100px" }}
                 >
                   <Icon
-                    className="mt-0.5 h-8 w-8 shrink-0 text-amber-500"
+                    className="mt-0.5 h-8 w-8 shrink-0 text-orange-600"
                     strokeWidth={1.5}
                     aria-hidden
                   />
                   <div>
-                    <h3 className="text-lg font-semibold text-white">
+                    <h3 className="text-lg font-semibold text-zinc-900">
                       {item.title}
                     </h3>
-                    <p className="mt-2 text-pretty text-sm leading-relaxed text-zinc-400">
+                    <p className="mt-2 text-pretty text-sm leading-relaxed text-zinc-600">
                       {item.body}
                     </p>
                   </div>

@@ -86,7 +86,7 @@ export default function DestacadosCarousel({ productos }: Props) {
 
   if (productos.length === 0) {
     return (
-      <div className="flex h-64 items-center justify-center text-sm text-zinc-400">
+      <div className="flex h-64 items-center justify-center text-sm text-zinc-600">
         No hay productos destacados todavia.
       </div>
     );
@@ -109,7 +109,7 @@ export default function DestacadosCarousel({ productos }: Props) {
           key={`${producto.id}-${index}`}
           href={`/productos/${producto.id}`}
           onClick={handleClick}
-          className="group flex flex-shrink-0 flex-col overflow-hidden rounded-2xl border border-white/10 bg-zinc-950 transition hover:border-orange-500/50 hover:-translate-y-1"
+          className="group flex flex-shrink-0 flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white transition hover:border-orange-500/50 hover:-translate-y-1"
           style={{ minWidth: `${CARD_WIDTH}px`, width: `${CARD_WIDTH}px` }}
           draggable={false}
         >
@@ -122,17 +122,17 @@ export default function DestacadosCarousel({ productos }: Props) {
                 draggable={false}
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-zinc-900 px-4 text-center text-sm font-semibold text-zinc-100">
+              <div className="flex h-full w-full items-center justify-center bg-white px-4 text-center text-sm font-semibold text-zinc-900">
                 {producto.nombre}
               </div>
             )}
           </div>
           <div className="flex flex-1 flex-col justify-between p-4">
             <div>
-              <p className="text-sm font-semibold tracking-tight text-zinc-50 group-hover:text-orange-300 transition">
+              <p className="text-sm font-semibold tracking-tight text-zinc-900 group-hover:text-orange-700 transition">
                 {producto.nombre}
               </p>
-              <p className="mt-1 line-clamp-2 text-xs text-zinc-400">
+              <p className="mt-1 line-clamp-2 text-xs text-zinc-600">
                 {producto.descripcion}
               </p>
             </div>

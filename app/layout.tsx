@@ -67,7 +67,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body
-        className={`${raleway.variable} ${bebasNeue.variable} font-sans bg-black`}
+        className={`${raleway.variable} ${bebasNeue.variable} font-sans bg-[#faf9f7]`}
       >
         <script
           type="application/ld+json"
@@ -75,7 +75,7 @@ export default function RootLayout({
         />
         <ConsultaProvider>
           <Navbar />
-          <main className="bg-black">{children}</main>
+          <main className="bg-[#faf9f7]">{children}</main>
           <Footer />
           <WhatsAppButton />
           <ConsultaCarrito />

@@ -27,7 +27,7 @@ export default function AgregarConsultaButton({
       <button
         type="button"
         onClick={() => quitarProducto(producto.id)}
-        className={`inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-700 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-400 transition hover:bg-emerald-500/20 ${className}`}
+        className={`inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-700 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 ${className}`}
       >
         <ShoppingCart className="h-4 w-4" />
         Agregado ✓
@@ -40,7 +40,7 @@ export default function AgregarConsultaButton({
     <button
       type="button"
       onClick={() => agregarProducto(producto)}
-      className={`inline-flex items-center justify-center gap-2 rounded-lg border border-amber-500/60 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-500 transition hover:bg-amber-500/20 ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-lg border border-orange-500/60 bg-orange-50 px-3 py-2 text-xs font-semibold text-orange-600 transition hover:bg-orange-100 ${className}`}
     >
       {compact ? <Plus className="h-4 w-4 shrink-0" /> : <ShoppingCart className="h-4 w-4" />}
       {compact ? (

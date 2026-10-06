@@ -121,8 +121,8 @@ function FilterCheckbox({
   const vacio = count === 0 && !checked;
   return (
     <label
-      className={`group/check flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 text-sm transition hover:bg-white/5 ${
-        vacio ? "text-zinc-600" : "text-zinc-300"
+      className={`group/check flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 text-sm transition hover:bg-zinc-100 ${
+        vacio ? "text-zinc-600" : "text-zinc-700"
       }`}
     >
       <input
@@ -133,11 +133,11 @@ function FilterCheckbox({
       />
       <span
         aria-hidden
-        className="flex h-4 w-4 shrink-0 items-center justify-center rounded border border-white/20 transition group-hover/check:border-orange-400/60 peer-checked:border-[#F97316] peer-checked:bg-[#F97316] peer-focus-visible:ring-2 peer-focus-visible:ring-[#F97316] peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-[#0a0a0a] [&>svg]:opacity-0 peer-checked:[&>svg]:opacity-100"
+        className="flex h-4 w-4 shrink-0 items-center justify-center rounded border border-zinc-300 transition group-hover/check:border-orange-400/60 peer-checked:border-[#F97316] peer-checked:bg-[#F97316] peer-focus-visible:ring-2 peer-focus-visible:ring-[#F97316] peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-white [&>svg]:opacity-0 peer-checked:[&>svg]:opacity-100"
       >
         <Check className="h-3 w-3 text-black" strokeWidth={3} />
       </span>
-      <span className="min-w-0 flex-1 leading-tight peer-checked:text-white">
+      <span className="min-w-0 flex-1 leading-tight peer-checked:text-zinc-900">
         {children}
       </span>
       {count != null && (
@@ -155,8 +155,8 @@ function FiltroSeccion({
   children: ReactNode;
 }) {
   return (
-    <section className="border-t border-white/10 pt-5">
-      <h3 className="mb-3 px-2 text-sm font-semibold text-zinc-100">
+    <section className="border-t border-zinc-200 pt-5">
+      <h3 className="mb-3 px-2 text-sm font-semibold text-zinc-900">
         {titulo}
       </h3>
       {children}
@@ -166,13 +166,13 @@ function FiltroSeccion({
 
 function ProductCardSkeleton() {
   return (
-    <div className="flex flex-col rounded-2xl border border-white/10 bg-zinc-950 p-2">
-      <div className="aspect-square w-full animate-pulse rounded-xl bg-zinc-900" />
+    <div className="flex flex-col rounded-2xl border border-zinc-200 bg-white p-2">
+      <div className="aspect-square w-full animate-pulse rounded-xl bg-white" />
       <div className="flex flex-col gap-2 px-2 pb-2 pt-3">
-        <div className="h-2.5 w-1/3 animate-pulse rounded bg-zinc-800" />
-        <div className="h-3 w-full animate-pulse rounded bg-zinc-800" />
-        <div className="h-3 w-2/3 animate-pulse rounded bg-zinc-800" />
-        <div className="mt-2 h-8 w-full animate-pulse rounded-lg bg-zinc-900" />
+        <div className="h-2.5 w-1/3 animate-pulse rounded bg-zinc-100" />
+        <div className="h-3 w-full animate-pulse rounded bg-zinc-100" />
+        <div className="h-3 w-2/3 animate-pulse rounded bg-zinc-100" />
+        <div className="mt-2 h-8 w-full animate-pulse rounded-lg bg-white" />
       </div>
     </div>
   );
@@ -190,9 +190,9 @@ function GrillaSkeleton() {
 
 function PageFallback() {
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-zinc-50">
+    <div className="min-h-screen bg-[#faf9f7] text-zinc-900">
       <div className="mx-auto max-w-[1400px] px-4 py-8 lg:px-6">
-        <div className="mb-8 h-10 w-56 animate-pulse rounded bg-zinc-800" />
+        <div className="mb-8 h-10 w-56 animate-pulse rounded bg-zinc-100" />
         <GrillaSkeleton />
       </div>
     </div>
@@ -210,7 +210,7 @@ function ProductCard({
 }) {
   return (
     <article
-      className="catalogo-card group relative flex flex-col rounded-2xl border border-white/10 bg-zinc-950 p-2"
+      className="catalogo-card group relative flex flex-col rounded-2xl border border-zinc-200 bg-white p-2"
       style={{ "--i": orden } as CSSProperties}
     >
       <Link
@@ -226,22 +226,22 @@ function ProductCard({
               className="catalogo-card__img h-full w-full object-contain p-3"
             />
           ) : (
-            <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-zinc-100 text-zinc-400">
+            <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-zinc-100 text-zinc-600">
               <Plug className="h-8 w-8" strokeWidth={1.25} aria-hidden />
               <span className="text-xs">Foto próximamente</span>
             </div>
           )}
           {!producto.disponible && (
-            <span className="absolute left-2 top-2 rounded-full bg-zinc-950 px-2.5 py-1 text-[11px] font-semibold text-white">
+            <span className="absolute left-2 top-2 rounded-full bg-zinc-900 px-2.5 py-1 text-[11px] font-semibold text-white">
               Sin stock
             </span>
           )}
         </div>
         <div className="flex flex-1 flex-col px-2 pt-3">
           {marca && (
-            <p className="text-xs font-medium text-orange-300">{marca}</p>
+            <p className="text-xs font-medium text-orange-700">{marca}</p>
           )}
-          <h2 className="mt-0.5 line-clamp-2 text-sm font-medium leading-snug text-zinc-100 transition group-hover:text-white">
+          <h2 className="mt-0.5 line-clamp-2 text-sm font-medium leading-snug text-zinc-900 transition group-hover:text-orange-700">
             {producto.nombre}
           </h2>
           {producto.codigo && (
@@ -654,7 +654,7 @@ function ProductosCatalogoInner() {
                         onChange={(c) => toggleCategoria(padre.id, c)}
                         count={conteoCategoria.get(padre.id)}
                       >
-                        <span className={algunHijoActivo ? "text-white" : undefined}>
+                        <span className={algunHijoActivo ? "text-zinc-900" : undefined}>
                           {padre.nombre}
                         </span>
                       </FilterCheckbox>
@@ -665,7 +665,7 @@ function ProductosCatalogoInner() {
                         onClick={() => toggleParentExpanded(padre.id)}
                         aria-expanded={expanded}
                         aria-label={`${expanded ? "Ocultar" : "Ver"} subcategorías de ${padre.nombre}`}
-                        className="ml-1 rounded-lg p-1.5 text-zinc-500 transition hover:bg-white/5 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F97316]"
+                        className="ml-1 rounded-lg p-1.5 text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F97316]"
                       >
                         <ChevronDown
                           className={`h-4 w-4 transition-transform duration-300 ${expanded ? "rotate-180" : ""}`}
@@ -680,7 +680,7 @@ function ProductosCatalogoInner() {
                       }`}
                     >
                       <ul
-                        className="ml-4 overflow-hidden border-l border-white/10 pl-2"
+                        className="ml-4 overflow-hidden border-l border-zinc-200 pl-2"
                         inert={!expanded}
                       >
                         {hijos.map((h) => (
@@ -760,7 +760,7 @@ function ProductosCatalogoInner() {
   const restantes = filtrados.length - mostrados.length;
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-zinc-50">
+    <div className="min-h-screen bg-[#faf9f7] text-zinc-900">
       <div className="mx-auto max-w-[1400px] px-4 pb-20 pt-8 lg:px-6 lg:pt-10">
         {/* Encabezado: título, búsqueda y orden */}
         <header className="mb-6 flex flex-col gap-5 lg:mb-8">
@@ -769,7 +769,7 @@ function ProductosCatalogoInner() {
               <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
                 Catálogo
               </h1>
-              <p className="mt-1 text-sm text-zinc-400" aria-live="polite">
+              <p className="mt-1 text-sm text-zinc-600" aria-live="polite">
                 {loading
                   ? "Cargando productos…"
                   : `${filtrados.length} ${filtrados.length === 1 ? "producto" : "productos"}`}
@@ -789,14 +789,14 @@ function ProductosCatalogoInner() {
                 onChange={(e) => setSearchDebounced(e.target.value)}
                 placeholder="Buscá por nombre, código o marca"
                 aria-label="Buscar productos"
-                className="h-12 w-full rounded-full border border-white/10 bg-zinc-950 pl-11 pr-4 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-500 hover:border-white/20 focus:border-[#F97316]/70 focus:ring-2 focus:ring-[#F97316]/20 [&::-webkit-search-cancel-button]:hidden"
+                className="h-12 w-full rounded-full border border-zinc-200 bg-white pl-11 pr-4 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-500 hover:border-zinc-300 focus:border-[#F97316]/70 focus:ring-2 focus:ring-[#F97316]/20 [&::-webkit-search-cancel-button]:hidden"
               />
               {searchDraft && (
                 <button
                   type="button"
                   onClick={removeChipSearch}
                   aria-label="Borrar búsqueda"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-2 text-zinc-500 transition hover:bg-white/5 hover:text-zinc-200"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-2 text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-800"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -807,7 +807,7 @@ function ProductosCatalogoInner() {
               <button
                 type="button"
                 onClick={() => setDrawerOpen(true)}
-                className="relative inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-full border border-white/10 bg-zinc-950 px-5 text-sm font-medium text-zinc-200 transition hover:border-white/20 lg:hidden"
+                className="relative inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-5 text-sm font-medium text-zinc-800 transition hover:border-zinc-300 lg:hidden"
               >
                 <SlidersHorizontal className="h-4 w-4" aria-hidden />
                 Filtros
@@ -826,7 +826,7 @@ function ProductosCatalogoInner() {
                 <select
                   value={orden}
                   onChange={(e) => setOrden(e.target.value as Orden)}
-                  className="h-12 w-full cursor-pointer appearance-none rounded-full border border-white/10 bg-zinc-950 pl-5 pr-9 text-sm sm:pl-11 sm:pr-10 text-zinc-200 outline-none transition hover:border-white/20 focus:border-[#F97316]/70 focus:ring-2 focus:ring-[#F97316]/20"
+                  className="h-12 w-full cursor-pointer appearance-none rounded-full border border-zinc-200 bg-white pl-5 pr-9 text-sm sm:pl-11 sm:pr-10 text-zinc-800 outline-none transition hover:border-zinc-300 focus:border-[#F97316]/70 focus:ring-2 focus:ring-[#F97316]/20"
                 >
                   {ORDENES.map((o) => (
                     <option key={o.id} value={o.id}>
@@ -849,18 +849,18 @@ function ProductosCatalogoInner() {
                   key={`${c.tipo}-${c.id}`}
                   type="button"
                   onClick={() => quitarChip(c)}
-                  className="group/chip inline-flex items-center gap-1.5 rounded-full border border-orange-500/40 bg-orange-500/10 py-1.5 pl-3 pr-2 text-xs font-medium text-orange-200 transition hover:border-orange-400 hover:bg-orange-500/20"
+                  className="group/chip inline-flex items-center gap-1.5 rounded-full border border-orange-300 bg-orange-50 py-1.5 pl-3 pr-2 text-xs font-medium text-orange-700 transition hover:border-orange-400 hover:bg-orange-100"
                   aria-label={`Quitar filtro ${c.label}`}
                 >
                   {c.label}
-                  <X className="h-3.5 w-3.5 text-orange-300 transition group-hover/chip:text-white" aria-hidden />
+                  <X className="h-3.5 w-3.5 text-orange-700 transition group-hover/chip:text-zinc-900" aria-hidden />
                 </button>
               ))}
               {chips.length > 1 && (
                 <button
                   type="button"
                   onClick={clearAllFilters}
-                  className="ml-1 rounded px-1 text-xs text-zinc-400 underline underline-offset-4 transition hover:text-white"
+                  className="ml-1 rounded px-1 text-xs text-zinc-600 underline underline-offset-4 transition hover:text-zinc-900"
                 >
                   Limpiar todo
                 </button>
@@ -879,7 +879,7 @@ function ProductosCatalogoInner() {
 
           <main className="min-w-0 flex-1">
             {error && (
-              <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+              <div className="mb-4 rounded-xl border border-red-500/30 bg-red-50 px-4 py-3 text-sm text-red-800">
                 {error}
               </div>
             )}
@@ -887,12 +887,12 @@ function ProductosCatalogoInner() {
             {loading && <GrillaSkeleton />}
 
             {!loading && !error && filtrados.length === 0 && (
-              <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/15 px-6 py-20 text-center">
-                <Search className="h-8 w-8 text-zinc-600" strokeWidth={1.5} aria-hidden />
-                <p className="mt-4 text-base font-medium text-zinc-100">
+              <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-300 px-6 py-20 text-center">
+                <Search className="h-8 w-8 text-zinc-400" strokeWidth={1.5} aria-hidden />
+                <p className="mt-4 text-base font-medium text-zinc-900">
                   No encontramos productos con esos filtros
                 </p>
-                <p className="mt-2 max-w-sm text-sm text-zinc-400">
+                <p className="mt-2 max-w-sm text-sm text-zinc-600">
                   Probá con otra palabra o quitá algún filtro. Si no lo ves,
                   escribinos y te decimos si lo tenemos.
                 </p>
@@ -927,7 +927,7 @@ function ProductosCatalogoInner() {
                   <p className="text-xs tabular-nums text-zinc-500">
                     Mostrando {mostrados.length} de {filtrados.length}
                   </p>
-                  <div className="h-1 w-48 overflow-hidden rounded-full bg-white/10">
+                  <div className="h-1 w-48 overflow-hidden rounded-full bg-zinc-200">
                     <div
                       className="h-full rounded-full bg-[#F97316] transition-[width] duration-500 ease-out"
                       style={{ width: `${(mostrados.length / filtrados.length) * 100}%` }}
@@ -937,7 +937,7 @@ function ProductosCatalogoInner() {
                     <button
                       type="button"
                       onClick={() => setVisibles((v) => v + POR_PAGINA)}
-                      className="mt-2 inline-flex items-center gap-2 rounded-full border border-white/15 px-6 py-3 text-sm font-semibold text-zinc-100 transition hover:border-[#F97316] hover:bg-[#F97316] hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F97316]"
+                      className="mt-2 inline-flex items-center gap-2 rounded-full border border-zinc-300 px-6 py-3 text-sm font-semibold text-zinc-900 transition hover:border-[#F97316] hover:bg-[#F97316] hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F97316]"
                     >
                       Ver más productos
                       <ChevronDown className="h-4 w-4" aria-hidden />
@@ -960,7 +960,7 @@ function ProductosCatalogoInner() {
           tabIndex={drawerOpen ? 0 : -1}
           aria-label="Cerrar filtros"
           onClick={() => setDrawerOpen(false)}
-          className={`absolute inset-0 bg-black/60 backdrop-blur-[2px] transition-opacity duration-300 ${
+          className={`absolute inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity duration-300 ${
             drawerOpen ? "opacity-100" : "opacity-0"
           }`}
         />
@@ -969,17 +969,17 @@ function ProductosCatalogoInner() {
           aria-modal="true"
           aria-label="Filtros"
           inert={!drawerOpen}
-          className={`absolute inset-x-0 bottom-0 flex max-h-[85vh] flex-col rounded-t-3xl border-t border-white/10 bg-[#0f0f0f] shadow-[0_-20px_50px_-20px_rgba(0,0,0,0.8)] transition-transform duration-[450ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          className={`absolute inset-x-0 bottom-0 flex max-h-[85vh] flex-col rounded-t-3xl border-t border-zinc-200 bg-white shadow-[0_-20px_50px_-20px_rgba(0,0,0,0.35)] transition-transform duration-[450ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
             drawerOpen ? "translate-y-0" : "translate-y-full"
           }`}
         >
-          <div className="mx-auto mt-3 h-1 w-10 rounded-full bg-white/20" aria-hidden />
+          <div className="mx-auto mt-3 h-1 w-10 rounded-full bg-zinc-300" aria-hidden />
           <div className="flex items-center justify-between px-5 pb-2 pt-3">
             <h2 className="text-lg font-semibold">Filtros</h2>
             <button
               type="button"
               onClick={() => setDrawerOpen(false)}
-              className="rounded-full p-2 text-zinc-400 transition hover:bg-white/5 hover:text-white"
+              className="rounded-full p-2 text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-900"
               aria-label="Cerrar"
             >
               <X className="h-5 w-5" />
@@ -988,12 +988,12 @@ function ProductosCatalogoInner() {
           <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-4">
             {renderFiltros()}
           </div>
-          <div className="flex gap-3 border-t border-white/10 p-4">
+          <div className="flex gap-3 border-t border-zinc-200 p-4">
             {activeFilterCount > 0 && (
               <button
                 type="button"
                 onClick={clearAllFilters}
-                className="rounded-full border border-white/15 px-5 py-3 text-sm font-medium text-zinc-200"
+                className="rounded-full border border-zinc-300 px-5 py-3 text-sm font-medium text-zinc-800"
               >
                 Limpiar
               </button>

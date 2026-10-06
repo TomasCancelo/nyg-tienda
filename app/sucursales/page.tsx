@@ -11,7 +11,7 @@ const MAPS_LINK =
 
 export default function SucursalesPage() {
   return (
-    <main className="bg-black px-4 py-16">
+    <main className="bg-[#faf9f7] px-4 py-16">
       <div className="mx-auto max-w-6xl">
         <motion.header
           initial={{ opacity: 0, y: 20 }}
@@ -19,10 +19,10 @@ export default function SucursalesPage() {
           transition={{ duration: 0.6, ease: "easeOut" }}
           className="text-center"
         >
-          <h1 className="text-balance text-4xl font-light tracking-tight text-white md:text-5xl">
+          <h1 className="text-balance text-4xl font-light tracking-tight text-zinc-900 md:text-5xl">
             Nuestras Sucursales
           </h1>
-          <p className="mt-4 text-zinc-400">
+          <p className="mt-4 text-zinc-600">
             Visitanos en nuestra tienda en Maldonado
           </p>
           <div className="mx-auto mt-6 h-0.5 w-20 bg-amber-500" aria-hidden />
@@ -32,7 +32,7 @@ export default function SucursalesPage() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
-          className="mt-12 grid gap-8 rounded-2xl border border-zinc-800 bg-zinc-900 p-6 md:grid-cols-2 md:p-8"
+          className="mt-12 grid gap-8 rounded-2xl border border-zinc-200 bg-white p-6 md:grid-cols-2 md:p-8"
         >
           <div className="overflow-hidden rounded-xl">
             <img
@@ -43,25 +43,25 @@ export default function SucursalesPage() {
           </div>
 
           <div className="flex flex-col justify-center">
-            <h2 className="text-3xl font-semibold text-white">
+            <h2 className="text-3xl font-semibold text-zinc-900">
               N&G Materiales Eléctricos
             </h2>
 
-            <div className="mt-6 space-y-4 text-zinc-300">
+            <div className="mt-6 space-y-4 text-zinc-700">
               <div className="flex items-start gap-3">
-                <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
+                <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-orange-600" />
                 <p>Av. Aparicio Saravia CASI Guyunusa, Maldonado, Uruguay</p>
               </div>
               <div className="flex items-start gap-3">
-                <Clock className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
+                <Clock className="mt-0.5 h-5 w-5 shrink-0 text-orange-600" />
                 <p>Lunes a Viernes: 8:00 - 12:30 / 14:00 - 18:00</p>
               </div>
               <div className="flex items-start gap-3">
-                <Phone className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
+                <Phone className="mt-0.5 h-5 w-5 shrink-0 text-orange-600" />
                 <p>42260541</p>
               </div>
               <div className="flex items-start gap-3">
-                <Smartphone className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
+                <Smartphone className="mt-0.5 h-5 w-5 shrink-0 text-orange-600" />
                 <p>096 077 602</p>
               </div>
             </div>
@@ -91,7 +91,7 @@ export default function SucursalesPage() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
-          className="mt-10 overflow-hidden rounded-2xl border border-zinc-800"
+          className="mt-10 overflow-hidden rounded-2xl border border-zinc-200"
         >
           <iframe
             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3272.8!2d-54.9424161!3d-34.9107885!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95751bb97a1bb0ad%3A0xb47ce57e9ec9c59d!2sN%26G%20Materiales%20El%C3%A9ctricos!5e0!3m2!1ses!2suy!4v1"
